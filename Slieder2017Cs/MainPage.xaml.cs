@@ -23,6 +23,8 @@ using Windows.UI.Text;
 using Microsoft.Graphics.Canvas.Geometry;
 using Windows.UI.Composition;
 using Windows.UI.Xaml.Hosting;
+using Microsoft.Graphics.Canvas.Effects;
+using Windows.UI.Composition.Interactions;
 
 // Документацию по шаблону элемента "Пустая страница" см. по адресу https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x419
 
@@ -34,10 +36,21 @@ namespace Slieder2017Cs
 
     public sealed partial class MainPage : Page
     {
-        CompositionDrawingSurface drawingSurface;
         CompositionLinearGradientBrush linearGradientBrush;
+        CompositionLinearGradientBrush circleGradientBrush;
         Compositor compositor;
-        ContainerVisual containerVisual;
+        ContainerVisual canvasVisual;
+        Vector2 sliderMargins = new Vector2(5, 5);
+        CompositionPropertySet propertySet;
+        Visual _canvasVisual;
+   
+        public MainPage()
+        {
+            this.InitializeComponent();
+
+            Loaded += PageLoaded;
+            
+        }
 
         private CompositionLinearGradientBrush createLinearGradientBrush(Compositor compositor)
         {
@@ -50,13 +63,46 @@ namespace Slieder2017Cs
             return brush;
         }
 
-        public MainPage()
+        private CompositionColorBrush createColorBrush(Compositor compositor, Color color)
         {
-            this.InitializeComponent(); 
+            CompositionColorBrush brush = compositor.CreateColorBrush();
+            brush.Color = color;
+            return brush;
+        }
 
-            containerVisual = GetVisual(canvas);
-            compositor = containerVisual.Compositor;
+        private ShapeVisual CreateTopCircleButton(Compositor compositor)
+        {
+            CompositionSpriteShape compositionSpriteShape;
+            CompositionRoundedRectangleGeometry circleGeometry = compositor.CreateRoundedRectangleGeometry();
+            circleGeometry.Size = new Vector2(40, 40);
+            circleGeometry.CornerRadius = new Vector2(20, 20);
+            compositionSpriteShape = compositor.CreateSpriteShape(circleGeometry);
+            circleGradientBrush = compositor.CreateLinearGradientBrush();
+            circleGradientBrush.StartPoint = new Vector2(0, 1);
+            circleGradientBrush.EndPoint = new Vector2(0f, 1);
+            circleGradientBrush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0f, Colors.White));
+            circleGradientBrush.ColorStops.Insert(1, compositor.CreateColorGradientStop(0.5f, Color.FromArgb(255, 247, 211, 156)));
+            circleGradientBrush.ColorStops.Insert(2, compositor.CreateColorGradientStop(1f, Colors.White));
+            compositionSpriteShape.FillBrush = createColorBrush(compositor, Colors.Aqua);//
+            ShapeVisual shapeVisual = compositor.CreateShapeVisual();
+            shapeVisual.Size = new Vector2(40, 40);
+            shapeVisual.Shapes.Add(compositionSpriteShape);
+            shapeVisual.Offset = new Vector3(sliderMargins, 0);            
+            return shapeVisual;
+        }
 
+        InteractionTracker _tracker;
+        VisualInteractionSource _interactionSource;
+
+       
+        private void PageLoaded(object sender, RoutedEventArgs e)
+        {
+            _canvasVisual = ElementCompositionPreview.GetElementVisual(canvas);
+            compositor = _canvasVisual.Compositor;
+            ContainerVisual root = _canvasVisual.Compositor.CreateContainerVisual();
+            ElementCompositionPreview.SetElementChildVisual(canvas, root);
+
+            canvasVisual = root;
             CompositionSpriteShape compositionSpriteShape;
             CompositionRoundedRectangleGeometry roundedRectangle = compositor.CreateRoundedRectangleGeometry();
             roundedRectangle.Size = new Vector2(150, 50);
@@ -64,25 +110,35 @@ namespace Slieder2017Cs
             compositionSpriteShape = compositor.CreateSpriteShape(roundedRectangle);
             linearGradientBrush = createLinearGradientBrush(compositor);
             compositionSpriteShape.FillBrush = linearGradientBrush;
-            compositionSpriteShape.CenterPoint = new Vector2(canvas.CenterPoint.X, canvas.CenterPoint.Y);
             ShapeVisual shapeVisual = compositor.CreateShapeVisual();
             shapeVisual.Size = new Vector2(150, 50);
             shapeVisual.Shapes.Add(compositionSpriteShape);
-            containerVisual.Children.InsertAtTop(shapeVisual);
+            canvasVisual.Children.InsertAtTop(shapeVisual);
+            // ----------------------------------------------
+
+            ShapeVisual shapeVisualCircle = CreateTopCircleButton(compositor);
+
+            _tracker = InteractionTracker.Create(compositor);
+            _interactionSource = VisualInteractionSource.Create(_canvasVisual);
+
+            _interactionSource.PositionXSourceMode = InteractionSourceMode.EnabledWithInertia;
+
+            _interactionSource.ManipulationRedirectionMode = VisualInteractionSourceRedirectionMode.CapableTouchpadAndPointerWheel;
+
+            _tracker.InteractionSources.Add(_interactionSource);
+            _tracker.MaxPosition = new Vector3(105, 25, 0);
+            _tracker.MaxScale = 1.0f;
+
+            var positionExpression = compositor.CreateExpressionAnimation("-tracker.Position");
+            positionExpression.SetReferenceParameter("tracker", _tracker);
+
+            shapeVisualCircle.StartAnimation("Offset", positionExpression);
         }
 
         private void Page_Unload(object sender, RoutedEventArgs e)
         {
             this.canvas.RemoveFromVisualTree();
             this.canvas = null;
-        }
-
-        private ContainerVisual GetVisual(UIElement element)
-        {
-            Visual hostVisual = ElementCompositionPreview.GetElementVisual(element);
-            ContainerVisual root = hostVisual.Compositor.CreateContainerVisual();
-            ElementCompositionPreview.SetElementChildVisual(element, root);
-            return root;
         }
 
         private void Canvas_CreateResources(Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.CanvasCreateResourcesEventArgs args)
@@ -118,8 +174,11 @@ namespace Slieder2017Cs
             textBox.Text = i.ToString();
         }
 
-        private void canvas_PointerMoved(object sender, PointerRoutedEventArgs e)
+        private void canvas_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
+            Windows.UI.Input.PointerPoint pointerPoint = e.GetCurrentPoint(canvas);
+            _interactionSource.TryRedirectForManipulation(pointerPoint);
+
             textBox.Text = i.ToString();
         }
     }

@@ -23,7 +23,8 @@
             Width="150"
             Height="50"
             PointerEntered="canvas_PointerEntered"
-            PointerMoved="canvas_PointerMoved"
+            PointerPressed="canvas_PointerPressed"
+            
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
         </canvas:CanvasAnimatedControl>
