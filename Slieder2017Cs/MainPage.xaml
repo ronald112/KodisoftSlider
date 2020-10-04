@@ -7,25 +7,27 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Unloaded="Page_Unload">
 
-    <Grid 
-        Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" 
-        VerticalAlignment="Stretch">
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
         <canvas:CanvasAnimatedControl 
+            Grid.Row="0"
             x:Name="canvas" 
             Draw="CanvasControl_Draw"
             CreateResources="Canvas_CreateResources"
             Update="Canvas_Update"
-            PointerMoved="canvas_PointerMoved"
-            PointerEntered="canvas_PointerEntered"
-            PointerExited="canvas_PointerExited"
             Width="150"
             Height="50"
+            PointerEntered="canvas_PointerEntered"
+            PointerMoved="canvas_PointerMoved"
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
         </canvas:CanvasAnimatedControl>
 
+        <TextBox x:Name="textBox" Grid.Row="1"/>
     </Grid>
 </Page>

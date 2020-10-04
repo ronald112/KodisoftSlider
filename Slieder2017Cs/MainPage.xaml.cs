@@ -34,12 +34,41 @@ namespace Slieder2017Cs
 
     public sealed partial class MainPage : Page
     {
-        CanvasLinearGradientBrush brush;
-        Rect rect;
         CompositionDrawingSurface drawingSurface;
+        CompositionLinearGradientBrush linearGradientBrush;
+        Compositor compositor;
+        ContainerVisual containerVisual;
+
+        private CompositionLinearGradientBrush createLinearGradientBrush(Compositor compositor)
+        {
+            CompositionLinearGradientBrush brush = compositor.CreateLinearGradientBrush();
+            brush.StartPoint = new Vector2(0, 1);
+            brush.EndPoint = new Vector2(0f, 1);
+            brush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0f, Color.FromArgb(255, 240, 170, 55)));
+            brush.ColorStops.Insert(1, compositor.CreateColorGradientStop(0.5f, Color.FromArgb(255, 244, 191, 106)));
+            brush.ColorStops.Insert(2, compositor.CreateColorGradientStop(1f, Color.FromArgb(255, 240, 170, 55)));
+            return brush;
+        }
+
         public MainPage()
         {
-            this.InitializeComponent();
+            this.InitializeComponent(); 
+
+            containerVisual = GetVisual(canvas);
+            compositor = containerVisual.Compositor;
+
+            CompositionSpriteShape compositionSpriteShape;
+            CompositionRoundedRectangleGeometry roundedRectangle = compositor.CreateRoundedRectangleGeometry();
+            roundedRectangle.Size = new Vector2(150, 50);
+            roundedRectangle.CornerRadius = new Vector2(25, 25);
+            compositionSpriteShape = compositor.CreateSpriteShape(roundedRectangle);
+            linearGradientBrush = createLinearGradientBrush(compositor);
+            compositionSpriteShape.FillBrush = linearGradientBrush;
+            compositionSpriteShape.CenterPoint = new Vector2(canvas.CenterPoint.X, canvas.CenterPoint.Y);
+            ShapeVisual shapeVisual = compositor.CreateShapeVisual();
+            shapeVisual.Size = new Vector2(150, 50);
+            shapeVisual.Shapes.Add(compositionSpriteShape);
+            containerVisual.Children.InsertAtTop(shapeVisual);
         }
 
         private void Page_Unload(object sender, RoutedEventArgs e)
@@ -48,67 +77,50 @@ namespace Slieder2017Cs
             this.canvas = null;
         }
 
-        async Task CreateResources(Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedControl sender)
+        private ContainerVisual GetVisual(UIElement element)
         {
-
-            brush = new CanvasLinearGradientBrush(sender, Colors.Orange, Colors.White);
-            //brush.Image = await CanvasBitmap.LoadAsync(sender, "Assets/drone.jpg");
-            //brush.StartPoint = new Vector2(sender.CenterPoint.X-75, sender.CenterPoint.Y);
-            brush.StartPoint = new Vector2(sender.CenterPoint.X - 80, sender.CenterPoint.Y);
-            brush.EndPoint = new Vector2(sender.CenterPoint.X - 74, sender.CenterPoint.Y);
-            brush.StartPoint = new Vector2(sender.CenterPoint.X - 70, sender.CenterPoint.Y);
-            rect = new Rect(sender.CenterPoint.X, sender.CenterPoint.Y, 150, 50);
+            Visual hostVisual = ElementCompositionPreview.GetElementVisual(element);
+            ContainerVisual root = hostVisual.Compositor.CreateContainerVisual();
+            ElementCompositionPreview.SetElementChildVisual(element, root);
+            return root;
         }
 
         private void Canvas_CreateResources(Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.CanvasCreateResourcesEventArgs args)
         {
-            args.TrackAsyncAction(CreateResources(sender).AsAsyncAction());
+
         }
 
-        int i = 0;
+        float i = 0;
         private void CanvasControl_Draw(Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
-
-            //var myBitmap = new CanvasRenderTarget(sender, 300, 300);
-            //using (var ds = myBitmap.CreateDrawingSession())
-            //{
-            //    ds.FillRoundedRectangle(rect, 25, 25, brush);
-            //}
-
-            //if (sender.Paused == true)
-            //    sender.Paused = false;
-            //else
-            //    sender.Paused = true;
-
-            //args.DrawingSession.DrawText($"Hello {i}", 50, 50, brush, format);
-
-
-            using (args.DrawingSession.CreateLayer(brush))
-            {
-                args.DrawingSession.FillRoundedRectangle(rect, 25, 25, brush);
-                
-            }
+            
         }
 
         private void Canvas_Update(Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedUpdateEventArgs args)
         {
-            i++;
+            if (i < 0.5f)
+                i += 0.03f;
+            else if (i > 0.5f && i < 2.0f)
+                i += 0.05f;
+            else if (i > 1.0f && i < 2.0f)
+                i += 0.1f;
+            else
+                i += 0.1f;
+            linearGradientBrush.StartPoint = new Vector2(i - 0.1f, 1);
+            linearGradientBrush.EndPoint = new Vector2(i + 0.2f, 1);
+            if (i >= 14.0f)
+                i = 0f;
+            
         }
 
         private void canvas_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            
-        }
-
-        private void canvas_PointerExited(object sender, PointerRoutedEventArgs e)
-        {
-            //brush.StartPoint = new Vector2(brush.StartPoint.X - 20, brush.StartPoint.Y);
-            
+            textBox.Text = i.ToString();
         }
 
         private void canvas_PointerMoved(object sender, PointerRoutedEventArgs e)
         {
-
+            textBox.Text = i.ToString();
         }
     }
 }
