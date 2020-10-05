@@ -92,9 +92,11 @@ namespace Slieder2017Cs
             return shapeVisual;
         }
 
-        private Vector3KeyFrameAnimation _leftOffsetAnimation;
-        private Vector3KeyFrameAnimation _rightOffsetAnimation;
+        //private Vector3KeyFrameAnimation _offsetAnimation;
+        private Vector3KeyFrameAnimation _leftoffsetAnimation;
+        private Vector3KeyFrameAnimation _rightoffsetAnimation;
         ShapeVisual shapeVisualCircle;
+        float norm = 1.0f;
 
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
@@ -125,30 +127,16 @@ namespace Slieder2017Cs
 
             shapeVisualCircle = CreateTopCircleButton(compositor);
 
-            var exp = compositor.CreateExpressionAnimation();
-            exp.Expression = "_pointerPositionProrSet.Vec";
-            exp.SetReferenceParameter("_pointerPositionProrSet", _pointerPositionProrSet);
-            shapeVisualCircle.StartAnimation(nameof(shapeVisualCircle.Offset), exp);
 
-            _leftOffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-            _leftOffsetAnimation.InsertKeyFrame(1, new Vector3(5, 5, 0));
-            _leftOffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
-            _rightOffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-            _rightOffsetAnimation.InsertKeyFrame(1, new Vector3(5, 5, 0));
-            _rightOffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+            _leftoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
+            _leftoffsetAnimation.InsertKeyFrame(norm, new Vector3(5, 5, 0));
+            _leftoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+
+            _rightoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
+            _rightoffsetAnimation.InsertKeyFrame(norm, new Vector3(105, 5, 0));
+            _rightoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
 
             canvasVisual.Children.InsertAtTop(shapeVisualCircle);
-
-
-            /*
-            var offsetAnimation = _compositor.CreateVector3KeyFrameAnimation();
-            offsetAnimation.Target = nameof(Visual.Offset);
-            offsetAnimation.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
-            offsetAnimation.Duration = TimeSpan.FromMilliseconds(1500);
-            var implicitAnimations = _compositor.CreateImplicitAnimationCollection();
-            implicitAnimations[nameof(Visual.Offset)] = offsetAnimation;
-            _visual.ImplicitAnimations = implicitAnimations;
-            */
         }
 
         private void Page_Unload(object sender, RoutedEventArgs e)
@@ -194,13 +182,7 @@ namespace Slieder2017Cs
         private void canvas_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             isPressed = true;
-            pointerPosition = new Vector3(e.GetCurrentPoint(canvas).Position.ToVector2().X - 20, 5, 0);
-            if (pointerPosition.X <= 5) 
-                pointerPosition.X = 5;
-            if (pointerPosition.X >= 105)
-                pointerPosition.X = 105;
-            _pointerPositionProrSet.InsertVector3("Vec", pointerPosition);
-            textBox.Text = pointerPosition.X.ToString();
+            canvas_PointerMoved(sender, e);
         }
 
         private void canvas_PointerMoved(object sender, PointerRoutedEventArgs e)
@@ -212,7 +194,7 @@ namespace Slieder2017Cs
                     pointerPosition.X = 5;
                 if (pointerPosition.X >= 105)
                     pointerPosition.X = 105;
-                _pointerPositionProrSet.InsertVector3("Vec", pointerPosition);
+                shapeVisualCircle.Offset = pointerPosition;
                 textBox.Text = pointerPosition.X.ToString();
             }
         }
@@ -222,18 +204,12 @@ namespace Slieder2017Cs
             isPressed = false;
             if (pointerPosition.X < 52.5f)
             {
-                shapeVisualCircle.StartAnimation("Offset", _leftOffsetAnimation);
-                //shapeVisualCircle.StopAnimation("Offset");
-                pointerPosition.X = 5;
+                shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _leftoffsetAnimation);
             }
             else
             {
-
-                shapeVisualCircle.StartAnimation("Offset", _rightOffsetAnimation);
-                //shapeVisualCircle.StopAnimation("Offset");
-                pointerPosition.X = 105;
+                shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _rightoffsetAnimation);
             }
-            _pointerPositionProrSet.InsertVector3("Vec", pointerPosition);
         }
 
         private void canvas_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
