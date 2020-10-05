@@ -41,7 +41,7 @@ namespace Slieder2017Cs
         Compositor compositor;
         ContainerVisual canvasVisual;
         Vector2 sliderMargins = new Vector2(5, 5);
-        CompositionPropertySet propertySet;
+        CompositionPropertySet _pointerPositionProrSet;
         Visual _canvasVisual;
    
         public MainPage()
@@ -91,10 +91,7 @@ namespace Slieder2017Cs
             return shapeVisual;
         }
 
-        InteractionTracker _tracker;
-        VisualInteractionSource _interactionSource;
-
-       
+      
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
             _canvasVisual = ElementCompositionPreview.GetElementVisual(canvas);
@@ -117,22 +114,15 @@ namespace Slieder2017Cs
             // ----------------------------------------------
 
             ShapeVisual shapeVisualCircle = CreateTopCircleButton(compositor);
+            Vector3KeyFrameAnimation animation = compositor.CreateVector3KeyFrameAnimation();
+            animation.InsertKeyFrame(1f, new Vector3(200f, 0f, 0f));
+            animation.Duration = TimeSpan.FromSeconds(2);
+            animation.Direction = Windows.UI.Composition.AnimationDirection.Alternate;
+            // Run animation for 10 times
+            animation.IterationCount = 10;
+            shapeVisualCircle.StartAnimation("Offset", animation);
 
-            _tracker = InteractionTracker.Create(compositor);
-            _interactionSource = VisualInteractionSource.Create(_canvasVisual);
-
-            _interactionSource.PositionXSourceMode = InteractionSourceMode.EnabledWithInertia;
-
-            _interactionSource.ManipulationRedirectionMode = VisualInteractionSourceRedirectionMode.CapableTouchpadAndPointerWheel;
-
-            _tracker.InteractionSources.Add(_interactionSource);
-            _tracker.MaxPosition = new Vector3(105, 25, 0);
-            _tracker.MaxScale = 1.0f;
-
-            var positionExpression = compositor.CreateExpressionAnimation("-tracker.Position");
-            positionExpression.SetReferenceParameter("tracker", _tracker);
-
-            shapeVisualCircle.StartAnimation("Offset", positionExpression);
+            canvasVisual.Children.InsertAtTop(shapeVisualCircle);
         }
 
         private void Page_Unload(object sender, RoutedEventArgs e)
@@ -176,9 +166,8 @@ namespace Slieder2017Cs
 
         private void canvas_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            Windows.UI.Input.PointerPoint pointerPoint = e.GetCurrentPoint(canvas);
-            _interactionSource.TryRedirectForManipulation(pointerPoint);
-
+            //_pointerPositionProrSet = ElementCompositionPreview.GetPointerPositionPropertySet(this);
+            
             textBox.Text = i.ToString();
         }
     }
