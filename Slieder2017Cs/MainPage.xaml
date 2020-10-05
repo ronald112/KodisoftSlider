@@ -24,7 +24,10 @@
             Height="50"
             PointerEntered="canvas_PointerEntered"
             PointerPressed="canvas_PointerPressed"
-            
+            PointerMoved="canvas_PointerMoved"
+            PointerReleased="canvas_PointerReleased"
+            PointerCaptureLost="canvas_PointerCaptureLost"
+            PointerExited="canvas_PointerExited"
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
         </canvas:CanvasAnimatedControl>

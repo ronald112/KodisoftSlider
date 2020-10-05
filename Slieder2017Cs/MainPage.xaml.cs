@@ -26,6 +26,7 @@ using Windows.UI.Xaml.Hosting;
 using Microsoft.Graphics.Canvas.Effects;
 using Windows.UI.Composition.Interactions;
 
+
 // Документацию по шаблону элемента "Пустая страница" см. по адресу https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x419
 
 namespace Slieder2017Cs
@@ -42,8 +43,8 @@ namespace Slieder2017Cs
         ContainerVisual canvasVisual;
         Vector2 sliderMargins = new Vector2(5, 5);
         CompositionPropertySet _pointerPositionProrSet;
-        Visual _canvasVisual;
-   
+        Vector3 pointerPosition;
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -91,14 +92,23 @@ namespace Slieder2017Cs
             return shapeVisual;
         }
 
-      
+        private Vector3KeyFrameAnimation _leftOffsetAnimation;
+        private Vector3KeyFrameAnimation _rightOffsetAnimation;
+        ShapeVisual shapeVisualCircle;
+
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
-            _canvasVisual = ElementCompositionPreview.GetElementVisual(canvas);
-            compositor = _canvasVisual.Compositor;
-            ContainerVisual root = _canvasVisual.Compositor.CreateContainerVisual();
+
+            compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
+            ContainerVisual root = compositor.CreateContainerVisual();
             ElementCompositionPreview.SetElementChildVisual(canvas, root);
 
+            _pointerPositionProrSet = compositor.CreatePropertySet();
+            pointerPosition = new Vector3(sliderMargins, 0);
+            _pointerPositionProrSet.InsertVector3("Vec", pointerPosition);
+
+           
+             
             canvasVisual = root;
             CompositionSpriteShape compositionSpriteShape;
             CompositionRoundedRectangleGeometry roundedRectangle = compositor.CreateRoundedRectangleGeometry();
@@ -113,16 +123,32 @@ namespace Slieder2017Cs
             canvasVisual.Children.InsertAtTop(shapeVisual);
             // ----------------------------------------------
 
-            ShapeVisual shapeVisualCircle = CreateTopCircleButton(compositor);
-            Vector3KeyFrameAnimation animation = compositor.CreateVector3KeyFrameAnimation();
-            animation.InsertKeyFrame(1f, new Vector3(200f, 0f, 0f));
-            animation.Duration = TimeSpan.FromSeconds(2);
-            animation.Direction = Windows.UI.Composition.AnimationDirection.Alternate;
-            // Run animation for 10 times
-            animation.IterationCount = 10;
-            shapeVisualCircle.StartAnimation("Offset", animation);
+            shapeVisualCircle = CreateTopCircleButton(compositor);
+
+            var exp = compositor.CreateExpressionAnimation();
+            exp.Expression = "_pointerPositionProrSet.Vec";
+            exp.SetReferenceParameter("_pointerPositionProrSet", _pointerPositionProrSet);
+            shapeVisualCircle.StartAnimation(nameof(shapeVisualCircle.Offset), exp);
+
+            _leftOffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
+            _leftOffsetAnimation.InsertKeyFrame(1, new Vector3(5, 5, 0));
+            _leftOffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+            _rightOffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
+            _rightOffsetAnimation.InsertKeyFrame(1, new Vector3(5, 5, 0));
+            _rightOffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
 
             canvasVisual.Children.InsertAtTop(shapeVisualCircle);
+
+
+            /*
+            var offsetAnimation = _compositor.CreateVector3KeyFrameAnimation();
+            offsetAnimation.Target = nameof(Visual.Offset);
+            offsetAnimation.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
+            offsetAnimation.Duration = TimeSpan.FromMilliseconds(1500);
+            var implicitAnimations = _compositor.CreateImplicitAnimationCollection();
+            implicitAnimations[nameof(Visual.Offset)] = offsetAnimation;
+            _visual.ImplicitAnimations = implicitAnimations;
+            */
         }
 
         private void Page_Unload(object sender, RoutedEventArgs e)
@@ -161,14 +187,62 @@ namespace Slieder2017Cs
 
         private void canvas_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            textBox.Text = i.ToString();
+            //textBox.Text = i.ToString();
         }
 
+        bool isPressed = false;
         private void canvas_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            //_pointerPositionProrSet = ElementCompositionPreview.GetPointerPositionPropertySet(this);
-            
-            textBox.Text = i.ToString();
+            isPressed = true;
+            pointerPosition = new Vector3(e.GetCurrentPoint(canvas).Position.ToVector2().X - 20, 5, 0);
+            if (pointerPosition.X <= 5) 
+                pointerPosition.X = 5;
+            if (pointerPosition.X >= 105)
+                pointerPosition.X = 105;
+            _pointerPositionProrSet.InsertVector3("Vec", pointerPosition);
+            textBox.Text = pointerPosition.X.ToString();
+        }
+
+        private void canvas_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (isPressed == true)
+            {
+                pointerPosition = new Vector3(e.GetCurrentPoint(canvas).Position.ToVector2().X - 20, 5, 0);
+                if (pointerPosition.X <= 5)
+                    pointerPosition.X = 5;
+                if (pointerPosition.X >= 105)
+                    pointerPosition.X = 105;
+                _pointerPositionProrSet.InsertVector3("Vec", pointerPosition);
+                textBox.Text = pointerPosition.X.ToString();
+            }
+        }
+
+        private void canvas_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            isPressed = false;
+            if (pointerPosition.X < 52.5f)
+            {
+                shapeVisualCircle.StartAnimation("Offset", _leftOffsetAnimation);
+                //shapeVisualCircle.StopAnimation("Offset");
+                pointerPosition.X = 5;
+            }
+            else
+            {
+
+                shapeVisualCircle.StartAnimation("Offset", _rightOffsetAnimation);
+                //shapeVisualCircle.StopAnimation("Offset");
+                pointerPosition.X = 105;
+            }
+            _pointerPositionProrSet.InsertVector3("Vec", pointerPosition);
+        }
+
+        private void canvas_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+        {
+        }
+
+        private void canvas_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+           
         }
     }
 }
