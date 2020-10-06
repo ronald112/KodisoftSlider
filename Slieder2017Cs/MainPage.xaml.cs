@@ -49,6 +49,10 @@ namespace Slieder2017Cs
         private Compositor compositor;
         private ContainerVisual canvasVisual;
         private Vector3 pointerPosition;
+        private ShapeVisual shapeVisualShadow;
+
+        private Vector3KeyFrameAnimation _leftoffsetAnimation;
+        private Vector3KeyFrameAnimation _rightoffsetAnimation;
 
         public Vector2 sliderMargins = new Vector2(0, 0);
         public Color waveColor = Color.FromArgb(255, 244, 191, 106);
@@ -100,20 +104,10 @@ namespace Slieder2017Cs
             compositionSpriteShape.FillBrush = circleGradientBrush;
             compositionSpriteShape.Offset = new Vector2(5, 5);
 
-            // Shadow
-            CompositionRoundedRectangleGeometry circleShaowGeometry = compositor.CreateRoundedRectangleGeometry();
-            circleShaowGeometry.Size = new Vector2(50, 50);
-            circleShaowGeometry.CornerRadius = new Vector2(25, 25);
-            CompositionSpriteShape compositionSpriteShapeShadow = compositor.CreateSpriteShape(circleShaowGeometry);
-            CompositionRadialGradientBrush compositionLinearGradientShadowBrush = compositor.CreateRadialGradientBrush();
-            compositionLinearGradientShadowBrush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0.5f, Color.FromArgb(255, 86, 57, 14)));
-            compositionLinearGradientShadowBrush.ColorStops.Insert(1, compositor.CreateColorGradientStop(1f, Color.FromArgb(255, 230, 160, 53)));
-            compositionLinearGradientShadowBrush.Offset = new Vector2(0, 3);
-            compositionSpriteShapeShadow.FillBrush = compositionLinearGradientShadowBrush;
+            
 
             ShapeVisual shapeVisual = compositor.CreateShapeVisual();
             shapeVisual.Size = new Vector2(50, 50);
-            shapeVisual.Shapes.Add(compositionSpriteShapeShadow);
             shapeVisual.Shapes.Add(compositionSpriteShape);
             shapeVisual.Offset = new Vector3(sliderMargins.X, 0, 0);
 
@@ -124,28 +118,30 @@ namespace Slieder2017Cs
             _rightoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(100 - sliderMargins.Y, 0, 0));
             _rightoffsetAnimation.Duration = TimeSpan.FromSeconds(0.2f);
 
+
+
             return shapeVisual;
         }
 
-        private Vector3KeyFrameAnimation _leftoffsetAnimation;
-        private Vector3KeyFrameAnimation _rightoffsetAnimation;
+        
         private ShapeVisual shapeVisualCircle;
 
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
+            
             switchText = "SWITCH";
             text = new TextBlock()
             {
                 Text = switchText,
-                HorizontalTextAlignment = TextAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 0, 25, 0),
-                FontWeight = FontWeights.Bold
-
+                Padding = new Thickness(0, 15, 25, 0),
+                FontWeight = FontWeights.Bold,
+                Height = 50,
+                HorizontalTextAlignment = TextAlignment.Right
             };
             canvas.Content = text;
+            
             Visual textVisual = ElementCompositionPreview.GetElementVisual(text);
-
+            
 
             theMileOfSwitch = (100.0f / 2f) - sliderMargins.Y + sliderMargins.X;
             compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
@@ -165,6 +161,23 @@ namespace Slieder2017Cs
             shapeVisual.Shapes.Add(compositionSpriteShape);
             canvasVisual.Children.InsertAtTop(shapeVisual);
             // ----------------------------------------------
+
+
+            // Shadow
+            CompositionRoundedRectangleGeometry circleShaowGeometry = compositor.CreateRoundedRectangleGeometry();
+            circleShaowGeometry.Size = new Vector2(50, 50);
+            circleShaowGeometry.CornerRadius = new Vector2(25, 25);
+            CompositionSpriteShape compositionSpriteShapeShadow = compositor.CreateSpriteShape(circleShaowGeometry);
+            CompositionRadialGradientBrush compositionLinearGradientShadowBrush = compositor.CreateRadialGradientBrush();
+            compositionLinearGradientShadowBrush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0.5f, Color.FromArgb(255, 86, 57, 14)));
+            compositionLinearGradientShadowBrush.ColorStops.Insert(1, compositor.CreateColorGradientStop(1f, Color.FromArgb(255, 230, 160, 53)));
+            compositionLinearGradientShadowBrush.Offset = new Vector2(0, 4);
+            compositionSpriteShapeShadow.FillBrush = compositionLinearGradientShadowBrush;
+            shapeVisualShadow = compositor.CreateShapeVisual();
+            shapeVisualShadow.Size = new Vector2(50, 50);
+            shapeVisualShadow.Shapes.Add(compositionSpriteShapeShadow);
+
+            canvasVisual.Children.InsertAtTop(shapeVisualShadow);
 
             // TEXT
             canvasVisual.Children.InsertAtTop(textVisual);
@@ -211,7 +224,7 @@ namespace Slieder2017Cs
 
         private void canvas_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            //textBox.Text = i.ToString();
+            textBox.Text = i.ToString();
         }
 
         bool isPressed = false;
@@ -231,6 +244,7 @@ namespace Slieder2017Cs
                     pointerPosition.X = 0 + sliderMargins.X;
                 if (pointerPosition.X >= 100 - sliderMargins.Y)
                     pointerPosition.X = 100 - sliderMargins.Y;
+                shapeVisualShadow.Offset = pointerPosition;
                 shapeVisualCircle.Offset = pointerPosition;
                 textBox.Text = pointerPosition.X.ToString();
             }
@@ -243,21 +257,24 @@ namespace Slieder2017Cs
             if (pointerPosition.X < theMileOfSwitch)
             {
                 shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _leftoffsetAnimation);
+                shapeVisualShadow.StartAnimation(nameof(Visual.Offset), _leftoffsetAnimation);
             }
             else
             {
                 shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _rightoffsetAnimation);
+                shapeVisualShadow.StartAnimation(nameof(Visual.Offset), _rightoffsetAnimation);
             }
         }
 
         private void canvas_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
         {
-            canvas_PointerReleased(sender, e);
+            
         }
 
         private void canvas_PointerExited(object sender, PointerRoutedEventArgs e)
         {
-            //canvas_PointerReleased(sender, e);           
+            if (isPressed == true)
+                canvas_PointerReleased(sender, e);           
         }
     }
 }
