@@ -42,7 +42,6 @@ namespace Slieder2017Cs
         Compositor compositor;
         ContainerVisual canvasVisual;
         Vector2 sliderMargins = new Vector2(5, 5);
-        CompositionPropertySet _pointerPositionProrSet;
         Vector3 pointerPosition;
 
         public MainPage()
@@ -73,44 +72,51 @@ namespace Slieder2017Cs
 
         private ShapeVisual CreateTopCircleButton(Compositor compositor)
         {
-            CompositionSpriteShape compositionSpriteShape;
             CompositionRoundedRectangleGeometry circleGeometry = compositor.CreateRoundedRectangleGeometry();
             circleGeometry.Size = new Vector2(40, 40);
             circleGeometry.CornerRadius = new Vector2(20, 20);
-            compositionSpriteShape = compositor.CreateSpriteShape(circleGeometry);
+            CompositionSpriteShape compositionSpriteShape = compositor.CreateSpriteShape(circleGeometry);
             circleGradientBrush = compositor.CreateLinearGradientBrush();
             circleGradientBrush.StartPoint = new Vector2(0, 1);
-            circleGradientBrush.EndPoint = new Vector2(0f, 1);
+            circleGradientBrush.EndPoint = new Vector2(0, 1);
             circleGradientBrush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0f, Colors.White));
             circleGradientBrush.ColorStops.Insert(1, compositor.CreateColorGradientStop(0.5f, Color.FromArgb(255, 247, 211, 156)));
             circleGradientBrush.ColorStops.Insert(2, compositor.CreateColorGradientStop(1f, Colors.White));
             compositionSpriteShape.FillBrush = createColorBrush(compositor, Colors.Aqua);//
+            compositionSpriteShape.Offset = sliderMargins;
+
+
+            CompositionRoundedRectangleGeometry circleShaowGeometry = compositor.CreateRoundedRectangleGeometry();
+            circleShaowGeometry.Size = new Vector2(50, 50);
+            circleShaowGeometry.CornerRadius = new Vector2(25, 25);
+            CompositionSpriteShape compositionSpriteShapeShadow = compositor.CreateSpriteShape(circleShaowGeometry);
+            CompositionRadialGradientBrush compositionLinearGradientShadowBrush = compositor.CreateRadialGradientBrush();
+            compositionLinearGradientShadowBrush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0.5f, Color.FromArgb(255, 86, 57, 14)));
+            compositionLinearGradientShadowBrush.ColorStops.Insert(1, compositor.CreateColorGradientStop(1f, Color.FromArgb(255, 230, 160, 53)));
+            compositionLinearGradientShadowBrush.Offset = new Vector2(0, 3);
+            compositionSpriteShapeShadow.FillBrush = compositionLinearGradientShadowBrush;
             ShapeVisual shapeVisual = compositor.CreateShapeVisual();
-            shapeVisual.Size = new Vector2(40, 40);
+            shapeVisual.Size = new Vector2(50, 50);
+            shapeVisual.Shapes.Add(compositionSpriteShapeShadow);
             shapeVisual.Shapes.Add(compositionSpriteShape);
-            shapeVisual.Offset = new Vector3(sliderMargins, 0);            
             return shapeVisual;
         }
 
-        //private Vector3KeyFrameAnimation _offsetAnimation;
         private Vector3KeyFrameAnimation _leftoffsetAnimation;
         private Vector3KeyFrameAnimation _rightoffsetAnimation;
-        ShapeVisual shapeVisualCircle;
-        float norm = 1.0f;
+        private ShapeVisual shapeVisualCircle;
 
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
-
             compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
             ContainerVisual root = compositor.CreateContainerVisual();
             ElementCompositionPreview.SetElementChildVisual(canvas, root);
 
-            _pointerPositionProrSet = compositor.CreatePropertySet();
-            pointerPosition = new Vector3(sliderMargins, 0);
-            _pointerPositionProrSet.InsertVector3("Vec", pointerPosition);
+            var dropShadow = compositor.CreateDropShadow();
+            dropShadow.Color = (Resources["ApplicationForegroundThemeBrush"] as SolidColorBrush).Color;
+            dropShadow.BlurRadius = 16;
+            dropShadow.Opacity = 20.0f;
 
-           
-             
             canvasVisual = root;
             CompositionSpriteShape compositionSpriteShape;
             CompositionRoundedRectangleGeometry roundedRectangle = compositor.CreateRoundedRectangleGeometry();
@@ -129,11 +135,11 @@ namespace Slieder2017Cs
 
 
             _leftoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-            _leftoffsetAnimation.InsertKeyFrame(norm, new Vector3(5, 5, 0));
+            _leftoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(0, 0, 0));
             _leftoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
 
             _rightoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-            _rightoffsetAnimation.InsertKeyFrame(norm, new Vector3(105, 5, 0));
+            _rightoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(100, 0, 0));
             _rightoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
 
             canvasVisual.Children.InsertAtTop(shapeVisualCircle);
@@ -189,11 +195,11 @@ namespace Slieder2017Cs
         {
             if (isPressed == true)
             {
-                pointerPosition = new Vector3(e.GetCurrentPoint(canvas).Position.ToVector2().X - 20, 5, 0);
-                if (pointerPosition.X <= 5)
-                    pointerPosition.X = 5;
-                if (pointerPosition.X >= 105)
-                    pointerPosition.X = 105;
+                pointerPosition = new Vector3(e.GetCurrentPoint(canvas).Position.ToVector2().X - 20, 0, 0);
+                if (pointerPosition.X <= 0)
+                    pointerPosition.X = 0;
+                if (pointerPosition.X >= 100)
+                    pointerPosition.X = 100;
                 shapeVisualCircle.Offset = pointerPosition;
                 textBox.Text = pointerPosition.X.ToString();
             }
