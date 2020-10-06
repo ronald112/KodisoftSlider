@@ -1,42 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-
 using Windows.UI;
-using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.Brushes;
-using Microsoft.Graphics.Canvas.Text;
 using System.Numerics;
-using System.Threading.Tasks;
 using Windows.UI.Text;
-using Microsoft.Graphics.Canvas.Geometry;
 using Windows.UI.Composition;
 using Windows.UI.Xaml.Hosting;
-using Microsoft.Graphics.Canvas.Effects;
-using Windows.UI.Composition.Interactions;
-using Microsoft.Graphics.Canvas.UI.Composition;
-using Windows.Graphics.DirectX;
 
 
-// Документацию по шаблону элемента "Пустая страница" см. по адресу https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x419
-
-namespace Slieder2017Cs
+namespace Slider
 {
-    /// <summary>
-    /// Пустая страница, которую можно использовать саму по себе или для перехода внутри фрейма.
-    /// </summary>
-
     public sealed partial class MainPage : Page
     {
         private CompositionLinearGradientBrush linearGradientBrush;
@@ -49,6 +23,8 @@ namespace Slieder2017Cs
         private Compositor compositor;
         private ContainerVisual canvasVisual;
         private Vector3 pointerPosition;
+        private ShapeVisual shapeVisualElipse;
+        private ShapeVisual shapeVisualCircle;
         private ShapeVisual shapeVisualShadow;
 
         private Vector3KeyFrameAnimation _leftoffsetAnimation;
@@ -66,23 +42,12 @@ namespace Slieder2017Cs
             this.InitializeComponent();
 
             Loaded += PageLoaded;
-            
+
         }
 
-        private CompositionLinearGradientBrush createLinearGradientBrush(Compositor compositor)
+        // Main circle
+        private void CreateTopCircleButton()
         {
-            CompositionLinearGradientBrush brush = compositor.CreateLinearGradientBrush();
-            brush.StartPoint = new Vector2(0, 1);
-            brush.EndPoint = new Vector2(0f, 1);
-            brush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0f, backgroundColor));
-            brush.ColorStops.Insert(1, compositor.CreateColorGradientStop(0.5f, waveColor));
-            brush.ColorStops.Insert(2, compositor.CreateColorGradientStop(1f, backgroundColor));
-            return brush;
-        }
-
-        private ShapeVisual CreateTopCircleButton(Compositor compositor)
-        {
-            // Main circle
             CompositionRoundedRectangleGeometry circleGeometry = compositor.CreateRoundedRectangleGeometry();
             circleGeometry.Size = new Vector2(40, 40);
             circleGeometry.CornerRadius = new Vector2(20, 20);
@@ -104,13 +69,12 @@ namespace Slieder2017Cs
             compositionSpriteShape.FillBrush = circleGradientBrush;
             compositionSpriteShape.Offset = new Vector2(5, 5);
 
-            
+            shapeVisualCircle = compositor.CreateShapeVisual();
+            shapeVisualCircle.Size = new Vector2(50, 50);
+            shapeVisualCircle.Shapes.Add(compositionSpriteShape);
+            shapeVisualCircle.Offset = new Vector3(sliderMargins.X, 0, 0);
 
-            ShapeVisual shapeVisual = compositor.CreateShapeVisual();
-            shapeVisual.Size = new Vector2(50, 50);
-            shapeVisual.Shapes.Add(compositionSpriteShape);
-            shapeVisual.Offset = new Vector3(sliderMargins.X, 0, 0);
-
+            // Return animation
             _leftoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
             _leftoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(0 + sliderMargins.X, 0, 0));
             _leftoffsetAnimation.Duration = TimeSpan.FromSeconds(0.2f);
@@ -118,52 +82,10 @@ namespace Slieder2017Cs
             _rightoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(100 - sliderMargins.Y, 0, 0));
             _rightoffsetAnimation.Duration = TimeSpan.FromSeconds(0.2f);
 
-
-
-            return shapeVisual;
         }
 
-        
-        private ShapeVisual shapeVisualCircle;
-
-        private void PageLoaded(object sender, RoutedEventArgs e)
+        private void CreateTopCircleButtonShadow()
         {
-            
-            switchText = "SWITCH";
-            text = new TextBlock()
-            {
-                Text = switchText,
-                Padding = new Thickness(0, 15, 25, 0),
-                FontWeight = FontWeights.Bold,
-                Height = 50,
-                HorizontalTextAlignment = TextAlignment.Right
-            };
-            canvas.Content = text;
-            
-            Visual textVisual = ElementCompositionPreview.GetElementVisual(text);
-            
-
-            theMileOfSwitch = (100.0f / 2f) - sliderMargins.Y + sliderMargins.X;
-            compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
-            ContainerVisual root = compositor.CreateContainerVisual();
-            ElementCompositionPreview.SetElementChildVisual(canvas, root);
-
-            // ELIPSE
-            canvasVisual = root;
-            CompositionRoundedRectangleGeometry roundedRectangle = compositor.CreateRoundedRectangleGeometry();
-            roundedRectangle.Size = new Vector2(150, 50);
-            roundedRectangle.CornerRadius = new Vector2(25, 25);
-            CompositionSpriteShape compositionSpriteShape = compositor.CreateSpriteShape(roundedRectangle);
-            linearGradientBrush = createLinearGradientBrush(compositor);
-            compositionSpriteShape.FillBrush = linearGradientBrush;
-            ShapeVisual shapeVisual = compositor.CreateShapeVisual();
-            shapeVisual.Size = new Vector2(150, 50);
-            shapeVisual.Shapes.Add(compositionSpriteShape);
-            canvasVisual.Children.InsertAtTop(shapeVisual);
-            // ----------------------------------------------
-
-
-            // Shadow
             CompositionRoundedRectangleGeometry circleShaowGeometry = compositor.CreateRoundedRectangleGeometry();
             circleShaowGeometry.Size = new Vector2(50, 50);
             circleShaowGeometry.CornerRadius = new Vector2(25, 25);
@@ -176,15 +98,67 @@ namespace Slieder2017Cs
             shapeVisualShadow = compositor.CreateShapeVisual();
             shapeVisualShadow.Size = new Vector2(50, 50);
             shapeVisualShadow.Shapes.Add(compositionSpriteShapeShadow);
+        }
 
+        private void CreateMainElipse()
+        {
+            CompositionRoundedRectangleGeometry roundedRectangle = compositor.CreateRoundedRectangleGeometry();
+            roundedRectangle.Size = new Vector2(150, 50);
+            roundedRectangle.CornerRadius = new Vector2(25, 25);
+            CompositionSpriteShape compositionSpriteShape = compositor.CreateSpriteShape(roundedRectangle);
+
+            linearGradientBrush = compositor.CreateLinearGradientBrush();
+            linearGradientBrush.StartPoint = new Vector2(0, 1);
+            linearGradientBrush.EndPoint = new Vector2(0f, 1);
+            linearGradientBrush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0f, backgroundColor));
+            linearGradientBrush.ColorStops.Insert(1, compositor.CreateColorGradientStop(0.5f, waveColor));
+            linearGradientBrush.ColorStops.Insert(2, compositor.CreateColorGradientStop(1f, backgroundColor));
+
+            compositionSpriteShape.FillBrush = linearGradientBrush;
+            shapeVisualElipse = compositor.CreateShapeVisual();
+            shapeVisualElipse.Size = new Vector2(150, 50);
+            shapeVisualElipse.Shapes.Add(compositionSpriteShape);
+        }
+
+
+
+        private void PageLoaded(object sender, RoutedEventArgs e)
+        {
+
+            // Text preparation
+            switchText = "SWITCH";
+            text = new TextBlock()
+            {
+                Text = switchText,
+                Padding = new Thickness(0, 15, 25, 0),
+                FontWeight = FontWeights.Bold,
+                Height = 50,
+                HorizontalTextAlignment = TextAlignment.Right
+            };
+            canvas.Content = text;
+            Visual textVisual = ElementCompositionPreview.GetElementVisual(text);
+
+            // Set new paddings
+            theMileOfSwitch = (100.0f / 2f) - sliderMargins.Y + sliderMargins.X;
+
+            // Take canvas compositor
+            compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
+            canvasVisual = compositor.CreateContainerVisual();
+            ElementCompositionPreview.SetElementChildVisual(canvas, canvasVisual);
+
+            // ELIPSE
+            CreateMainElipse();
+            canvasVisual.Children.InsertAtTop(shapeVisualElipse);
+
+            // Shadow
+            CreateTopCircleButtonShadow();
             canvasVisual.Children.InsertAtTop(shapeVisualShadow);
 
             // TEXT
             canvasVisual.Children.InsertAtTop(textVisual);
 
             // CIRCLE
-            shapeVisualCircle = CreateTopCircleButton(compositor);
-
+            CreateTopCircleButton();
             canvasVisual.Children.InsertAtTop(shapeVisualCircle);
         }
 
@@ -194,19 +168,10 @@ namespace Slieder2017Cs
             this.canvas = null;
         }
 
-        private void Canvas_CreateResources(Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.CanvasCreateResourcesEventArgs args)
-        {
-
-        }
-
         float i = 0; // DBG
-        private void CanvasControl_Draw(Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
-        {
-            
-        }
-
         private void Canvas_Update(Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedUpdateEventArgs args)
         {
+            // Speed for Elipse gradient
             if (i < 0.5f)
                 i += 0.03f;
             else if (i > 0.5f && i < 2.0f)
@@ -219,15 +184,10 @@ namespace Slieder2017Cs
             linearGradientBrush.EndPoint = new Vector2(i + 0.2f, 1);
             if (i >= 14.0f)
                 i = 0f;
-            
+
         }
 
-        private void canvas_PointerEntered(object sender, PointerRoutedEventArgs e)
-        {
-            textBox.Text = i.ToString();
-        }
-
-        bool isPressed = false;
+        private bool isPressed = false;
         private void canvas_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             isPressed = true;
@@ -246,7 +206,6 @@ namespace Slieder2017Cs
                     pointerPosition.X = 100 - sliderMargins.Y;
                 shapeVisualShadow.Offset = pointerPosition;
                 shapeVisualCircle.Offset = pointerPosition;
-                textBox.Text = pointerPosition.X.ToString();
             }
         }
 
@@ -266,15 +225,10 @@ namespace Slieder2017Cs
             }
         }
 
-        private void canvas_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
-        {
-            
-        }
-
         private void canvas_PointerExited(object sender, PointerRoutedEventArgs e)
         {
             if (isPressed == true)
-                canvas_PointerReleased(sender, e);           
+                canvas_PointerReleased(sender, e);
         }
     }
 }

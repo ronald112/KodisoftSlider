@@ -7,14 +7,14 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="9542a94d-a81d-424e-b687-32a9aff680c3"
+    Name="f138a481-c4d7-4208-84fd-e9b51c010d87"
     Publisher="CN=Ronald"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="9542a94d-a81d-424e-b687-32a9aff680c3" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="f138a481-c4d7-4208-84fd-e9b51c010d87" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>Slieder2017Cs</DisplayName>
+    <DisplayName>Slider</DisplayName>
     <PublisherDisplayName>Ronald</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -30,12 +30,12 @@
   <Applications>
     <Application Id="App"
       Executable="$targetnametoken$.exe"
-      EntryPoint="Slieder2017Cs.App">
+      EntryPoint="Slider.App">
       <uap:VisualElements
-        DisplayName="Slieder2017Cs"
+        DisplayName="Slider"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="Slieder2017Cs"
+        Description="Slider"
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
