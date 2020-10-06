@@ -25,6 +25,8 @@ using Windows.UI.Composition;
 using Windows.UI.Xaml.Hosting;
 using Microsoft.Graphics.Canvas.Effects;
 using Windows.UI.Composition.Interactions;
+using Microsoft.Graphics.Canvas.UI.Composition;
+using Windows.Graphics.DirectX;
 
 
 // Документацию по шаблону элемента "Пустая страница" см. по адресу https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x419
@@ -37,18 +39,22 @@ namespace Slieder2017Cs
 
     public sealed partial class MainPage : Page
     {
-        CompositionLinearGradientBrush linearGradientBrush;
-        CompositionRadialGradientBrush circleGradientBrush;
+        private CompositionLinearGradientBrush linearGradientBrush;
+        private CompositionRadialGradientBrush circleGradientBrush;
 
-        CompositionColorGradientStop ColorStop1;
-        ColorKeyFrameAnimation color1Animation;
-        ColorKeyFrameAnimation color2Animation;
+        private CompositionColorGradientStop ColorStop1;
+        private ColorKeyFrameAnimation color1Animation;
+        private ColorKeyFrameAnimation color2Animation;
 
-        Compositor compositor;
-        ContainerVisual canvasVisual;
-        Vector3 pointerPosition;
+        private Compositor compositor;
+        private ContainerVisual canvasVisual;
+        private Vector3 pointerPosition;
 
         public Vector2 sliderMargins = new Vector2(0, 0);
+        public Color waveColor = Color.FromArgb(255, 244, 191, 106);
+        public Color backgroundColor = Color.FromArgb(255, 240, 170, 55);
+        public String switchText;
+        private TextBlock text;
         private float theMileOfSwitch;
 
         public MainPage()
@@ -64,9 +70,9 @@ namespace Slieder2017Cs
             CompositionLinearGradientBrush brush = compositor.CreateLinearGradientBrush();
             brush.StartPoint = new Vector2(0, 1);
             brush.EndPoint = new Vector2(0f, 1);
-            brush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0f, Color.FromArgb(255, 240, 170, 55)));
-            brush.ColorStops.Insert(1, compositor.CreateColorGradientStop(0.5f, Color.FromArgb(255, 244, 191, 106)));
-            brush.ColorStops.Insert(2, compositor.CreateColorGradientStop(1f, Color.FromArgb(255, 240, 170, 55)));
+            brush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0f, backgroundColor));
+            brush.ColorStops.Insert(1, compositor.CreateColorGradientStop(0.5f, waveColor));
+            brush.ColorStops.Insert(2, compositor.CreateColorGradientStop(1f, backgroundColor));
             return brush;
         }
 
@@ -113,10 +119,10 @@ namespace Slieder2017Cs
 
             _leftoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
             _leftoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(0 + sliderMargins.X, 0, 0));
-            _leftoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+            _leftoffsetAnimation.Duration = TimeSpan.FromSeconds(0.2f);
             _rightoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
             _rightoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(100 - sliderMargins.Y, 0, 0));
-            _rightoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+            _rightoffsetAnimation.Duration = TimeSpan.FromSeconds(0.2f);
 
             return shapeVisual;
         }
@@ -127,6 +133,20 @@ namespace Slieder2017Cs
 
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
+            switchText = "SWITCH";
+            text = new TextBlock()
+            {
+                Text = switchText,
+                HorizontalTextAlignment = TextAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 25, 0),
+                FontWeight = FontWeights.Bold
+
+            };
+            canvas.Content = text;
+            Visual textVisual = ElementCompositionPreview.GetElementVisual(text);
+
+
             theMileOfSwitch = (100.0f / 2f) - sliderMargins.Y + sliderMargins.X;
             compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
             ContainerVisual root = compositor.CreateContainerVisual();
@@ -137,7 +157,6 @@ namespace Slieder2017Cs
             CompositionRoundedRectangleGeometry roundedRectangle = compositor.CreateRoundedRectangleGeometry();
             roundedRectangle.Size = new Vector2(150, 50);
             roundedRectangle.CornerRadius = new Vector2(25, 25);
-            Composition
             CompositionSpriteShape compositionSpriteShape = compositor.CreateSpriteShape(roundedRectangle);
             linearGradientBrush = createLinearGradientBrush(compositor);
             compositionSpriteShape.FillBrush = linearGradientBrush;
@@ -146,6 +165,9 @@ namespace Slieder2017Cs
             shapeVisual.Shapes.Add(compositionSpriteShape);
             canvasVisual.Children.InsertAtTop(shapeVisual);
             // ----------------------------------------------
+
+            // TEXT
+            canvasVisual.Children.InsertAtTop(textVisual);
 
             // CIRCLE
             shapeVisualCircle = CreateTopCircleButton(compositor);
@@ -230,12 +252,12 @@ namespace Slieder2017Cs
 
         private void canvas_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
         {
-            //canvas_PointerReleased(sender, e);
+            canvas_PointerReleased(sender, e);
         }
 
         private void canvas_PointerExited(object sender, PointerRoutedEventArgs e)
         {
-            canvas_PointerReleased(sender, e);           
+            //canvas_PointerReleased(sender, e);           
         }
     }
 }
