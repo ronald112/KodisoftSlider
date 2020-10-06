@@ -38,11 +38,18 @@ namespace Slieder2017Cs
     public sealed partial class MainPage : Page
     {
         CompositionLinearGradientBrush linearGradientBrush;
-        CompositionLinearGradientBrush circleGradientBrush;
+        CompositionRadialGradientBrush circleGradientBrush;
+
+        CompositionColorGradientStop ColorStop1;
+        ColorKeyFrameAnimation color1Animation;
+        ColorKeyFrameAnimation color2Animation;
+
         Compositor compositor;
         ContainerVisual canvasVisual;
-        Vector2 sliderMargins = new Vector2(5, 5);
         Vector3 pointerPosition;
+
+        public Vector2 sliderMargins = new Vector2(0, 0);
+        private float theMileOfSwitch;
 
         public MainPage()
         {
@@ -63,29 +70,31 @@ namespace Slieder2017Cs
             return brush;
         }
 
-        private CompositionColorBrush createColorBrush(Compositor compositor, Color color)
-        {
-            CompositionColorBrush brush = compositor.CreateColorBrush();
-            brush.Color = color;
-            return brush;
-        }
-
         private ShapeVisual CreateTopCircleButton(Compositor compositor)
         {
+            // Main circle
             CompositionRoundedRectangleGeometry circleGeometry = compositor.CreateRoundedRectangleGeometry();
             circleGeometry.Size = new Vector2(40, 40);
             circleGeometry.CornerRadius = new Vector2(20, 20);
             CompositionSpriteShape compositionSpriteShape = compositor.CreateSpriteShape(circleGeometry);
-            circleGradientBrush = compositor.CreateLinearGradientBrush();
-            circleGradientBrush.StartPoint = new Vector2(0, 1);
-            circleGradientBrush.EndPoint = new Vector2(0, 1);
-            circleGradientBrush.ColorStops.Insert(0, compositor.CreateColorGradientStop(0f, Colors.White));
-            circleGradientBrush.ColorStops.Insert(1, compositor.CreateColorGradientStop(0.5f, Color.FromArgb(255, 247, 211, 156)));
-            circleGradientBrush.ColorStops.Insert(2, compositor.CreateColorGradientStop(1f, Colors.White));
-            compositionSpriteShape.FillBrush = createColorBrush(compositor, Colors.Aqua);//
-            compositionSpriteShape.Offset = sliderMargins;
+            circleGradientBrush = compositor.CreateRadialGradientBrush();
 
+            // Color animation
+            ColorStop1 = compositor.CreateColorGradientStop(1, Colors.White);
+            circleGradientBrush.ColorStops.Add(ColorStop1);
+            color1Animation = compositor.CreateColorKeyFrameAnimation();
+            color1Animation.Duration = TimeSpan.FromSeconds(0.5);
+            color1Animation.InsertKeyFrame(1.0f, Color.FromArgb(255, 247, 211, 156));
+            color1Animation.InsertKeyFrame(0.0f, Colors.White);
+            color2Animation = compositor.CreateColorKeyFrameAnimation();
+            color2Animation.Duration = TimeSpan.FromSeconds(0.5);
+            color2Animation.InsertKeyFrame(1.0f, Colors.White);
+            color2Animation.InsertKeyFrame(0.0f, Color.FromArgb(255, 247, 211, 156));
 
+            compositionSpriteShape.FillBrush = circleGradientBrush;
+            compositionSpriteShape.Offset = new Vector2(5, 5);
+
+            // Shadow
             CompositionRoundedRectangleGeometry circleShaowGeometry = compositor.CreateRoundedRectangleGeometry();
             circleShaowGeometry.Size = new Vector2(50, 50);
             circleShaowGeometry.CornerRadius = new Vector2(25, 25);
@@ -95,10 +104,20 @@ namespace Slieder2017Cs
             compositionLinearGradientShadowBrush.ColorStops.Insert(1, compositor.CreateColorGradientStop(1f, Color.FromArgb(255, 230, 160, 53)));
             compositionLinearGradientShadowBrush.Offset = new Vector2(0, 3);
             compositionSpriteShapeShadow.FillBrush = compositionLinearGradientShadowBrush;
+
             ShapeVisual shapeVisual = compositor.CreateShapeVisual();
             shapeVisual.Size = new Vector2(50, 50);
             shapeVisual.Shapes.Add(compositionSpriteShapeShadow);
             shapeVisual.Shapes.Add(compositionSpriteShape);
+            shapeVisual.Offset = new Vector3(sliderMargins.X, 0, 0);
+
+            _leftoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
+            _leftoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(0 + sliderMargins.X, 0, 0));
+            _leftoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+            _rightoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
+            _rightoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(100 - sliderMargins.Y, 0, 0));
+            _rightoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
+
             return shapeVisual;
         }
 
@@ -108,21 +127,18 @@ namespace Slieder2017Cs
 
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
+            theMileOfSwitch = (100.0f / 2f) - sliderMargins.Y + sliderMargins.X;
             compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
             ContainerVisual root = compositor.CreateContainerVisual();
             ElementCompositionPreview.SetElementChildVisual(canvas, root);
 
-            var dropShadow = compositor.CreateDropShadow();
-            dropShadow.Color = (Resources["ApplicationForegroundThemeBrush"] as SolidColorBrush).Color;
-            dropShadow.BlurRadius = 16;
-            dropShadow.Opacity = 20.0f;
-
+            // ELIPSE
             canvasVisual = root;
-            CompositionSpriteShape compositionSpriteShape;
             CompositionRoundedRectangleGeometry roundedRectangle = compositor.CreateRoundedRectangleGeometry();
             roundedRectangle.Size = new Vector2(150, 50);
             roundedRectangle.CornerRadius = new Vector2(25, 25);
-            compositionSpriteShape = compositor.CreateSpriteShape(roundedRectangle);
+            Composition
+            CompositionSpriteShape compositionSpriteShape = compositor.CreateSpriteShape(roundedRectangle);
             linearGradientBrush = createLinearGradientBrush(compositor);
             compositionSpriteShape.FillBrush = linearGradientBrush;
             ShapeVisual shapeVisual = compositor.CreateShapeVisual();
@@ -131,16 +147,8 @@ namespace Slieder2017Cs
             canvasVisual.Children.InsertAtTop(shapeVisual);
             // ----------------------------------------------
 
+            // CIRCLE
             shapeVisualCircle = CreateTopCircleButton(compositor);
-
-
-            _leftoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-            _leftoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(0, 0, 0));
-            _leftoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
-
-            _rightoffsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-            _rightoffsetAnimation.InsertKeyFrame(1.0f, new Vector3(100, 0, 0));
-            _rightoffsetAnimation.Duration = TimeSpan.FromSeconds(0.5f);
 
             canvasVisual.Children.InsertAtTop(shapeVisualCircle);
         }
@@ -156,7 +164,7 @@ namespace Slieder2017Cs
 
         }
 
-        float i = 0;
+        float i = 0; // DBG
         private void CanvasControl_Draw(Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args)
         {
             
@@ -188,6 +196,7 @@ namespace Slieder2017Cs
         private void canvas_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             isPressed = true;
+            ColorStop1.StartAnimation(nameof(ColorStop1.Color), color1Animation);
             canvas_PointerMoved(sender, e);
         }
 
@@ -195,11 +204,11 @@ namespace Slieder2017Cs
         {
             if (isPressed == true)
             {
-                pointerPosition = new Vector3(e.GetCurrentPoint(canvas).Position.ToVector2().X - 20, 0, 0);
-                if (pointerPosition.X <= 0)
-                    pointerPosition.X = 0;
-                if (pointerPosition.X >= 100)
-                    pointerPosition.X = 100;
+                pointerPosition = new Vector3(e.GetCurrentPoint(canvas).Position.ToVector2().X - 25, 0, 0);
+                if (pointerPosition.X <= 0 + sliderMargins.X)
+                    pointerPosition.X = 0 + sliderMargins.X;
+                if (pointerPosition.X >= 100 - sliderMargins.Y)
+                    pointerPosition.X = 100 - sliderMargins.Y;
                 shapeVisualCircle.Offset = pointerPosition;
                 textBox.Text = pointerPosition.X.ToString();
             }
@@ -207,8 +216,9 @@ namespace Slieder2017Cs
 
         private void canvas_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
+            ColorStop1.StartAnimation(nameof(ColorStop1.Color), color2Animation);
             isPressed = false;
-            if (pointerPosition.X < 52.5f)
+            if (pointerPosition.X < theMileOfSwitch)
             {
                 shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _leftoffsetAnimation);
             }
@@ -220,11 +230,12 @@ namespace Slieder2017Cs
 
         private void canvas_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
         {
+            //canvas_PointerReleased(sender, e);
         }
 
         private void canvas_PointerExited(object sender, PointerRoutedEventArgs e)
         {
-           
+            canvas_PointerReleased(sender, e);           
         }
     }
 }
