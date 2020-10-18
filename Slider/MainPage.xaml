@@ -14,10 +14,6 @@
             Update="Canvas_Update"
             Width="150"
             Height="50"
-            PointerPressed="canvas_PointerPressed"
-            PointerMoved="canvas_PointerMoved"
-            PointerReleased="canvas_PointerReleased"
-            PointerExited="canvas_PointerExited"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             HorizontalContentAlignment ="Right">
