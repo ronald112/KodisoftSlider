@@ -5,18 +5,8 @@
     xmlns:local="using:Slider"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    
     mc:Ignorable="d"
     Unloaded="Page_Unload">
 
-    <canvas:CanvasAnimatedControl 
-            x:Name="canvas" 
-            Update="Canvas_Update"
-            Width="150"
-            Height="50"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            HorizontalContentAlignment ="Right">
-
-    </canvas:CanvasAnimatedControl>
 </Page>
