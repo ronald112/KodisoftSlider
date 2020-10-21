@@ -5,8 +5,17 @@
     xmlns:local="using:Slider"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
     mc:Ignorable="d"
-    Unloaded="Page_Unload">
+    Unloaded="Page_Unload"
+    HorizontalAlignment="Center"
+    VerticalAlignment="Center">
+
+    <canvas:CanvasControl
+        x:Name="pageSliderBox" 
+        Width="150" 
+        Height="50"
+    >
+    </canvas:CanvasControl>
 
 </Page>
