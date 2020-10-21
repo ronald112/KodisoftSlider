@@ -25,7 +25,9 @@ namespace Slider
         private slider_class.MyCustomSlider slider;
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
-            slider = new MyCustomSlider(HorizontalAlignment.Center, VerticalAlignment.Center);
+            slider = new MyCustomSlider(HorizontalAlignment.Center, VerticalAlignment.Center, this);
+
+
             
         }
 
