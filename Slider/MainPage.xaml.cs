@@ -26,8 +26,6 @@ namespace Slider
         private void PageLoaded(object sender, RoutedEventArgs e)
         {
             slider = new MyCustomSlider(pageSliderBox);
-
-            
         }
 
 

@@ -11,6 +11,8 @@ using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using Windows.UI.Xaml.Media;
 using Microsoft.Graphics.Canvas.UI.Xaml;
+using System.IO;
+using Windows.Storage.Streams;
 
 namespace slider_class
 {
@@ -25,10 +27,12 @@ namespace slider_class
 
         private Compositor m_page_compositor;
         private ContainerVisual visuals;
-        private UIElement m_page;
+        private CanvasControl m_page;
         private CompositionLinearGradientBrush linearGradientBrush;
         private float theMileOfSwitch;
         //-------------------------------------------
+
+        private TextBlock text;
 
         private Vector3KeyFrameAnimation _leftoffsetAnimation;
         private Vector3KeyFrameAnimation _rightoffsetAnimation;
@@ -47,7 +51,7 @@ namespace slider_class
         private ShapeVisual shapeVisualShadow;
         private bool isPressed = false;
 
-        public MyCustomSlider(UIElement page)
+        public MyCustomSlider(CanvasControl page)
         {
             m_page = page;
             m_page_compositor = ElementCompositionPreview.GetElementVisual(m_page).Compositor; ;
@@ -66,29 +70,26 @@ namespace slider_class
             roundedRectangle.CornerRadius = new Vector2(25, 25);
             CompositionSpriteShape compositionSpriteShape = m_page_compositor.CreateSpriteShape(roundedRectangle);
             linearGradientBrush = m_page_compositor.CreateLinearGradientBrush();
-            linearGradientBrush.StartPoint = new Vector2(0, 1);
+            linearGradientBrush.StartPoint = new Vector2(-0.2f, 1);
             linearGradientBrush.EndPoint = new Vector2(0f, 1);
             linearGradientBrush.ColorStops.Insert(0, m_page_compositor.CreateColorGradientStop(0f, m_backgroundColor));
             linearGradientBrush.ColorStops.Insert(1, m_page_compositor.CreateColorGradientStop(0.5f, m_waveColor));
             linearGradientBrush.ColorStops.Insert(2, m_page_compositor.CreateColorGradientStop(1f, m_backgroundColor));
 
+            // Gradient animation
             elipseColorStartPointAnimation = m_page_compositor.CreateVector2KeyFrameAnimation();
-            elipseColorStartPointAnimation.Duration = TimeSpan.FromSeconds(1);
+            elipseColorStartPointAnimation.Duration = TimeSpan.FromSeconds(1.5);
             elipseColorStartPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
-            elipseColorStartPointAnimation.DelayTime = TimeSpan.FromSeconds(0.5);
-            elipseColorStartPointAnimation.InsertKeyFrame(0.0f, new Vector2(-0.2f, 1));
-            elipseColorStartPointAnimation.InsertKeyFrame(0.1f, new Vector2(150 - 0.2f, 1));
-            
+            elipseColorStartPointAnimation.DelayTime = TimeSpan.FromSeconds(5);
+            elipseColorStartPointAnimation.InsertKeyFrame(0f, new Vector2(-0.2f, 1));
+            elipseColorStartPointAnimation.InsertKeyFrame(1f, new Vector2(1.3f, 1));
 
             elipseColorEndPointAnimation = m_page_compositor.CreateVector2KeyFrameAnimation();
-            elipseColorEndPointAnimation.Duration = TimeSpan.FromSeconds(1);
+            elipseColorEndPointAnimation.Duration = TimeSpan.FromSeconds(1.5);
             elipseColorEndPointAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
-            elipseColorEndPointAnimation.DelayTime = TimeSpan.FromSeconds(0.5);
-            elipseColorEndPointAnimation.InsertKeyFrame(0.0f, new Vector2(+ 0.2f, 1));
-            elipseColorEndPointAnimation.InsertKeyFrame(0.1f, new Vector2(150 + 0.2f, 1));
-
-
-
+            elipseColorEndPointAnimation.DelayTime = TimeSpan.FromSeconds(5);
+            elipseColorEndPointAnimation.InsertKeyFrame(0f, new Vector2(0f, 1));
+            elipseColorEndPointAnimation.InsertKeyFrame(1f, new Vector2(1.5f, 1));
 
             compositionSpriteShape.FillBrush = linearGradientBrush;
             shapeVisualElipse = m_page_compositor.CreateShapeVisual();
@@ -152,12 +153,9 @@ namespace slider_class
 
         private void createCanvas()
         {
-            
-            visuals = m_page_compositor.CreateContainerVisual();
-            ElementCompositionPreview.SetElementChildVisual(m_page, visuals);
 
             // Text preparation
-            TextBlock text = new TextBlock()
+            text = new TextBlock()
             {
                 Text = m_switchText,
                 Padding = new Thickness(0, 15, 25, 0),
@@ -165,11 +163,15 @@ namespace slider_class
                 Height = 50,
                 HorizontalTextAlignment = TextAlignment.Right
             };
-
+            //m_page.Content = text;
+            //m_page.
             Visual textVisual = ElementCompositionPreview.GetElementVisual(text);
 
             // Set new paddings
             theMileOfSwitch = (100.0f / 2f) - m_sliderMargins.Y + m_sliderMargins.X;
+
+            visuals = m_page_compositor.CreateContainerVisual();
+            ElementCompositionPreview.SetElementChildVisual(m_page, visuals);
 
             // ELIPSE
             CreateMainElipse();
@@ -186,16 +188,20 @@ namespace slider_class
             CreateTopCircleButton();
             visuals.Children.InsertAtTop(shapeVisualCircle);
 
+            
+            //text.Text = linearGradientBrush.StartPoint.ToString();
+            
+
+
             m_page.PointerMoved += M_page_PointerMoved;
             m_page.PointerPressed += M_page_PointerPressed;
             m_page.PointerReleased += M_page_PointerReleased;
             m_page.PointerExited += M_page_PointerExited;
-
             linearGradientBrush.StartAnimation(nameof(linearGradientBrush.StartPoint), elipseColorStartPointAnimation);
-            //linearGradientBrush.StartAnimation(nameof(linearGradientBrush.EndPoint), elipseColorEndPointAnimation);
-
+            linearGradientBrush.StartAnimation(nameof(linearGradientBrush.EndPoint), elipseColorEndPointAnimation);
 
         }
+
 
         private void M_page_PointerExited(object sender, PointerRoutedEventArgs e)
         {
