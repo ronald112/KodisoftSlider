@@ -202,7 +202,7 @@ namespace slider_class
             CompositionSpriteShape compositionSpriteShape = m_page_compositor.CreateSpriteShape(stretchGeometry);
             CompositionRadialGradientBrush GradientBrush = m_page_compositor.CreateRadialGradientBrush();
 
-            GradientBrush.ColorStops.Add(m_page_compositor.CreateColorGradientStop(1, Colors.Azure));
+            GradientBrush.ColorStops.Add(m_page_compositor.CreateColorGradientStop(1, Colors.Aqua));
 
             compositionSpriteShape.FillBrush = GradientBrush;
             compositionSpriteShape.Offset = new Vector2(5, 5);
@@ -212,11 +212,30 @@ namespace slider_class
             stretchVisual.Shapes.Add(compositionSpriteShape);
             stretchVisual.Offset = new Vector3(m_sliderMargins.X, 0, 0);
 
-            var exp = m_page_compositor.CreateExpressionAnimation();
-            exp.Expression = "Visual.Offset";
-            exp.SetReferenceParameter("Visual", stretchVisual);
+            var offsetAnimation = m_page_compositor.CreateVector3KeyFrameAnimation();
+            offsetAnimation.Target = nameof(Visual.Offset);
+            offsetAnimation.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
+            offsetAnimation.Duration = TimeSpan.FromMilliseconds(1500);
 
-            shapeVisualCircle.StartAnimation(nameof(shapeVisualCircle.Offset), exp);
+/*            var exp = m_page_compositor.CreateExpressionAnimation();
+            exp.Expression = "visual.Offset";
+            exp.SetReferenceParameter("visual", shapeVisualCircle);
+            exp.StartAnimation(nameof(stretchVisual.Offset), offsetAnimation);
+            stretchVisual.StartAnimation(nameof(stretchVisual.Offset), exp);
+
+            var animationGroup = m_page_compositor.CreateAnimationGroup();
+            animationGroup.Add(offsetAnimation);
+            animationGroup.Add(exp);
+
+*/            
+            var implicitAnimation = m_page_compositor.CreateImplicitAnimationCollection();
+            implicitAnimation[nameof(shapeVisualCircle.Offset)] = offsetAnimation;
+
+            stretchVisual.ImplicitAnimations = implicitAnimation;
+
+            
+
+            
         }
 
         private void createWidthObject()
@@ -253,12 +272,12 @@ namespace slider_class
             setupReturnAnimationForCircleButton();
             visuals.Children.InsertAtTop(shapeVisualCircle);
 
-            // animation for shadow
+            // Animation for shadow
             setupMoveAnimationForBottonShadow();
 
             //
-            //setupOffsetAnimationForCircleButton();
-            //visuals.Children.InsertAtTop(stretchVisual);
+            setupOffsetAnimationForCircleButton();
+            visuals.Children.InsertAtTop(stretchVisual);
 
             // Handle pointer events
             m_page.PointerMoved += M_page_PointerMoved;
@@ -286,12 +305,10 @@ namespace slider_class
             if (pointerPosition.X < theMileOfSwitch)
             {
                 shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _leftoffsetAnimation);
-                //shapeVisualShadow.StartAnimation(nameof(Visual.Offset), _leftoffsetAnimation);
             }
             else
             {
                 shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _rightoffsetAnimation);
-                //shapeVisualShadow.StartAnimation(nameof(Visual.Offset), _rightoffsetAnimation);
             }
         }
 
@@ -311,7 +328,7 @@ namespace slider_class
                     pointerPosition.X = 0 + m_sliderMargins.X;
                 if (pointerPosition.X >= 100 - m_sliderMargins.Y)
                     pointerPosition.X = 100 - m_sliderMargins.Y;
-                //shapeVisualShadow.Offset = pointerPosition;
+                stretchVisual.Offset = shapeVisualCircle.Offset;
                 shapeVisualCircle.Offset = pointerPosition;
             }
         }
