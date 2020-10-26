@@ -11,11 +11,11 @@
     HorizontalAlignment="Center"
     VerticalAlignment="Center">
 
-    <canvas:CanvasControl
+    <canvas:CanvasAnimatedControl
         x:Name="pageSliderBox" 
         Width="150" 
         Height="50"
     >
-    </canvas:CanvasControl>
+    </canvas:CanvasAnimatedControl>
 
 </Page>

@@ -13,6 +13,9 @@ using Windows.UI.Xaml.Media;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using System.IO;
 using Windows.Storage.Streams;
+using Microsoft.Graphics.Canvas.UI.Composition;
+using Windows.Graphics.DirectX;
+using Windows.Foundation;
 
 namespace slider_class
 {
@@ -27,12 +30,14 @@ namespace slider_class
 
         private Compositor m_page_compositor;
         private ContainerVisual visuals;
-        private CanvasControl m_page;
+        private CanvasAnimatedControl m_page;
         private CompositionLinearGradientBrush linearGradientBrush;
         private float theMileOfSwitch;
+        private Vector2KeyFrameAnimation elipseColorStartPointAnimation;
+        private Vector2KeyFrameAnimation elipseColorEndPointAnimation;
+        private Visual textVisual;
         //-------------------------------------------
 
-        private TextBlock text;
 
         private Vector3KeyFrameAnimation _leftoffsetAnimation;
         private Vector3KeyFrameAnimation _rightoffsetAnimation;
@@ -42,8 +47,6 @@ namespace slider_class
         private CompositionColorGradientStop ColorStop1;
         private ColorKeyFrameAnimation color1Animation;
         private ColorKeyFrameAnimation color2Animation;
-        private Vector2KeyFrameAnimation elipseColorStartPointAnimation;
-        private Vector2KeyFrameAnimation elipseColorEndPointAnimation;
 
         private Vector3 pointerPosition;
         private ShapeVisual shapeVisualElipse;
@@ -51,7 +54,7 @@ namespace slider_class
         private ShapeVisual shapeVisualShadow;
         private bool isPressed = false;
 
-        public MyCustomSlider(CanvasControl page)
+        public MyCustomSlider(CanvasAnimatedControl page)
         {
             m_page = page;
             m_page_compositor = ElementCompositionPreview.GetElementVisual(m_page).Compositor; ;
@@ -137,7 +140,7 @@ namespace slider_class
             compositionSpriteShape.Offset = new Vector2(5, 5);
 
             shapeVisualCircle = m_page_compositor.CreateShapeVisual();
-            shapeVisualCircle.Size = new Vector2(50, 50);
+            shapeVisualCircle.Size = new Vector2(150, 50);
             shapeVisualCircle.Shapes.Add(compositionSpriteShape);
             shapeVisualCircle.Offset = new Vector3(m_sliderMargins.X, 0, 0);
 
@@ -151,11 +154,10 @@ namespace slider_class
 
         }
 
-        private void createCanvas()
+        private void createText()
         {
-
             // Text preparation
-            text = new TextBlock()
+            TextBlock text = new TextBlock()
             {
                 Text = m_switchText,
                 Padding = new Thickness(0, 15, 25, 0),
@@ -163,14 +165,21 @@ namespace slider_class
                 Height = 50,
                 HorizontalTextAlignment = TextAlignment.Right
             };
-            //m_page.Content = text;
-            //m_page.
-            Visual textVisual = ElementCompositionPreview.GetElementVisual(text);
+            m_page.Content = text;
+            textVisual = ElementCompositionPreview.GetElementVisual(text);
+            
+            //ElementCompositionPreview.SetElementChildVisual(m_page, textVisual);
+
+        }
+
+        private void createCanvas()
+        {
 
             // Set new paddings
             theMileOfSwitch = (100.0f / 2f) - m_sliderMargins.Y + m_sliderMargins.X;
 
             visuals = m_page_compositor.CreateContainerVisual();
+            
             ElementCompositionPreview.SetElementChildVisual(m_page, visuals);
 
             // ELIPSE
@@ -182,6 +191,7 @@ namespace slider_class
             visuals.Children.InsertAtTop(shapeVisualShadow);
 
             // TEXT
+            createText();
             visuals.Children.InsertAtTop(textVisual);
 
             // CIRCLE

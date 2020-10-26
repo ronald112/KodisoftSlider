@@ -17,7 +17,7 @@ namespace Slider
     {
         public MainPage()
         {
-            // Make almost reusable switch
+            // TODO Make almost reusable switch
             this.InitializeComponent();
             Loaded += PageLoaded;
         }
