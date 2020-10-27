@@ -212,30 +212,18 @@ namespace slider_class
             stretchVisual.Shapes.Add(compositionSpriteShape);
             stretchVisual.Offset = new Vector3(m_sliderMargins.X, 0, 0);
 
+
+
             var offsetAnimation = m_page_compositor.CreateVector3KeyFrameAnimation();
             offsetAnimation.Target = nameof(Visual.Offset);
             offsetAnimation.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
-            offsetAnimation.Duration = TimeSpan.FromMilliseconds(1500);
+            offsetAnimation.StopBehavior = AnimationStopBehavior.SetToFinalValue;
+            offsetAnimation.Duration = TimeSpan.FromMilliseconds(800);
 
-/*            var exp = m_page_compositor.CreateExpressionAnimation();
-            exp.Expression = "visual.Offset";
-            exp.SetReferenceParameter("visual", shapeVisualCircle);
-            exp.StartAnimation(nameof(stretchVisual.Offset), offsetAnimation);
-            stretchVisual.StartAnimation(nameof(stretchVisual.Offset), exp);
-
-            var animationGroup = m_page_compositor.CreateAnimationGroup();
-            animationGroup.Add(offsetAnimation);
-            animationGroup.Add(exp);
-
-*/            
             var implicitAnimation = m_page_compositor.CreateImplicitAnimationCollection();
             implicitAnimation[nameof(shapeVisualCircle.Offset)] = offsetAnimation;
 
             stretchVisual.ImplicitAnimations = implicitAnimation;
-
-            
-
-            
         }
 
         private void createWidthObject()
@@ -284,6 +272,7 @@ namespace slider_class
             m_page.PointerPressed += M_page_PointerPressed;
             m_page.PointerReleased += M_page_PointerReleased;
             m_page.PointerExited += M_page_PointerExited;
+            m_page.Update += M_page_Update;
 
             // Gradient animation
             linearGradientBrush.StartAnimation(nameof(linearGradientBrush.StartPoint), elipseColorStartPointAnimation);
@@ -291,6 +280,10 @@ namespace slider_class
 
         }
 
+        private void M_page_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
+        {
+            stretchVisual.Offset = shapeVisualCircle.Offset;
+        }
 
         private void M_page_PointerExited(object sender, PointerRoutedEventArgs e)
         {
@@ -328,7 +321,6 @@ namespace slider_class
                     pointerPosition.X = 0 + m_sliderMargins.X;
                 if (pointerPosition.X >= 100 - m_sliderMargins.Y)
                     pointerPosition.X = 100 - m_sliderMargins.Y;
-                stretchVisual.Offset = shapeVisualCircle.Offset;
                 shapeVisualCircle.Offset = pointerPosition;
             }
         }
