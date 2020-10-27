@@ -192,6 +192,8 @@ namespace slider_class
 
 
         private ShapeVisual stretchVisual;
+
+        Vector3KeyFrameAnimation offsetAnimationstretchVisual;
         private void setupOffsetAnimationForCircleButton()
         {
             CompositionRoundedRectangleGeometry stretchGeometry = m_page_compositor.CreateRoundedRectangleGeometry();
@@ -214,14 +216,17 @@ namespace slider_class
 
 
 
-            var offsetAnimation = m_page_compositor.CreateVector3KeyFrameAnimation();
-            offsetAnimation.Target = nameof(Visual.Offset);
-            offsetAnimation.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
-            offsetAnimation.StopBehavior = AnimationStopBehavior.SetToFinalValue;
-            offsetAnimation.Duration = TimeSpan.FromMilliseconds(800);
+            offsetAnimationstretchVisual = m_page_compositor.CreateVector3KeyFrameAnimation();
+            offsetAnimationstretchVisual.Target = nameof(Visual.Offset);
+
+            offsetAnimationstretchVisual.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
+            offsetAnimationstretchVisual.StopBehavior = AnimationStopBehavior.LeaveCurrentValue;
+            //offsetAnimation.DelayTime = TimeSpan.FromSeconds(0.1);
+            offsetAnimationstretchVisual.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
+            //offsetAnimationstretchVisual.Duration = TimeSpan.FromMilliseconds(800);
 
             var implicitAnimation = m_page_compositor.CreateImplicitAnimationCollection();
-            implicitAnimation[nameof(shapeVisualCircle.Offset)] = offsetAnimation;
+            implicitAnimation[nameof(shapeVisualCircle.Offset)] = offsetAnimationstretchVisual;
 
             stretchVisual.ImplicitAnimations = implicitAnimation;
         }
@@ -283,6 +288,7 @@ namespace slider_class
         private void M_page_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
         {
             stretchVisual.Offset = shapeVisualCircle.Offset;
+            
         }
 
         private void M_page_PointerExited(object sender, PointerRoutedEventArgs e)
@@ -321,6 +327,8 @@ namespace slider_class
                     pointerPosition.X = 0 + m_sliderMargins.X;
                 if (pointerPosition.X >= 100 - m_sliderMargins.Y)
                     pointerPosition.X = 100 - m_sliderMargins.Y;
+                float time = Math.Abs(shapeVisualCircle.CenterPoint.X - pointerPosition.X);
+                offsetAnimationstretchVisual.Duration = TimeSpan.FromMilliseconds(time > 0 ? time : 1);
                 shapeVisualCircle.Offset = pointerPosition;
             }
         }
