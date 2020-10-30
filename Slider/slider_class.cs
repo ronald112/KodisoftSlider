@@ -133,18 +133,22 @@ namespace slider_class
             
             circleGeometry.Size = new Vector2(40, 40);
             circleGeometry.CornerRadius = new Vector2(20, 20);
-            
+
+            CompositionRectangleGeometry rectangleGeometry = m_page_compositor.CreateRectangleGeometry();
+
+            rectangleGeometry.Size = new Vector2(40, 40);
+
             CompositionSpriteShape compositionSpriteShape = m_page_compositor.CreateSpriteShape(circleGeometry);
             circleGradientBrush = m_page_compositor.CreateRadialGradientBrush();
 
             ColorStop1 = m_page_compositor.CreateColorGradientStop(1, Colors.White);
-            circleGradientBrush.ColorStops.Add(ColorStop1);
+            circleGradientBrush.ColorStops.Add(ColorStop1);            
 
             compositionSpriteShape.FillBrush = circleGradientBrush;
             compositionSpriteShape.Offset = new Vector2(5, 5);
 
             shapeVisualCircle = m_page_compositor.CreateShapeVisual();
-            shapeVisualCircle.Size = new Vector2(150, 50);
+            shapeVisualCircle.Size = new Vector2(50, 50);
             shapeVisualCircle.Shapes.Add(compositionSpriteShape);
             shapeVisualCircle.Offset = new Vector3(m_sliderMargins.X, 0, 0);
         }
@@ -184,35 +188,41 @@ namespace slider_class
 
             CubicBezierEasingFunction easing = m_page_compositor.CreateCubicBezierEasingFunction(new Vector2(0.42f, 0.0f), new Vector2(1.0f, 1.0f));
 
-            var offsetAnimationstretchVisual = m_page_compositor.CreateVector3KeyFrameAnimation();
-            offsetAnimationstretchVisual.Target = nameof(stretchVisual.Offset);
-            offsetAnimationstretchVisual.InsertExpressionKeyFrame(0.5f, "this.FinalValue");
-            //offsetAnimationstretchVisual.Duration = TimeSpan.FromSeconds(0.1);
-            offsetAnimationstretchVisual.StopBehavior = AnimationStopBehavior.SetToInitialValue;
+            var sizeAnimationstretchVisual = m_page_compositor.CreateVector2KeyFrameAnimation();
+            sizeAnimationstretchVisual.Target = nameof(CompositionRoundedRectangleGeometry.Size);
+            sizeAnimationstretchVisual.InsertExpressionKeyFrame(0f, "this.StartingValue", easing);
+            sizeAnimationstretchVisual.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
+
+
+            // stretchVisualCircle.Shapes[0].Scale = new Vector2(2, 1);
+
+            ScalarKeyFrameAnimation scaleAnimation = m_page_compositor.CreateScalarKeyFrameAnimation();
+            //scaleAnimation.Target = nameof(shapeVisualCircle.Shapes[1].Scale);
+            //scaleAnimation.InsertExpressionKeyFrame(0f, "this.StartingValue", easing);
+            scaleAnimation.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
+            
+            //scaleAnimation.SetReferenceParameter("Math", Math);
 
             offsetAnimationstretchVisual2 = m_page_compositor.CreateVector3KeyFrameAnimation();
-            offsetAnimationstretchVisual2.Target = nameof(stretchVisual.Offset);
-            offsetAnimationstretchVisual2.InsertExpressionKeyFrame(0.8f, "prop.newOffset");
-            //offsetAnimationstretchVisual2.Delay = TimeSpan.FromMilliseconds(100);
-            //offsetAnimationstretchVisual2.Duration = TimeSpan.FromSeconds(1);
-            //offsetAnimationstretchVisual2.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
-            //offsetAnimationstretchVisual2.StopBehavior = AnimationStopBehavior.SetToInitialValue;
-            offsetAnimationstretchVisual2.SetReferenceParameter("prop", stretchVisual.Properties);
+            offsetAnimationstretchVisual2.Target = nameof(stretchVisualCircle.Offset);
+            offsetAnimationstretchVisual2.InsertExpressionKeyFrame(0f, "this.StartingValue", easing);
+            offsetAnimationstretchVisual2.InsertExpressionKeyFrame(0.7f, "prop.newOffset");
+            offsetAnimationstretchVisual2.SetReferenceParameter("prop", stretchVisualCircle.Properties);
 
 
             var implicitAnimation = m_page_compositor.CreateImplicitAnimationCollection();
-            implicitAnimation[nameof(Visual.Offset)] = offsetAnimationstretchVisual;
-            //stretchVisual.ImplicitAnimations = implicitAnimation;
+            implicitAnimation[nameof(CompositionRoundedRectangleGeometry.Size)] = sizeAnimationstretchVisual;
+            stretchGeometryCircle.ImplicitAnimations = implicitAnimation;
 
-            //stretchVisual.StartAnimation("Offset", offsetAnimationstretchVisual);
+            //stretchVisualCircle.StartAnimation("Offset", offsetAnimationstretchVisual);
             //offsetAnimationstretchVisual.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
             //offsetAnimationstretchVisual.StopBehavior = AnimationStopBehavior.LeaveCurrentValue;
             //offsetAnimation.DelayTime = TimeSpan.FromSeconds(0.1);
             //offsetAnimationstretchVisual.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
             //offsetAnimationstretchVisual.Duration = TimeSpan.FromMilliseconds(800);
-            
 
-            
+
+
         }
 
 
@@ -231,34 +241,48 @@ namespace slider_class
             textVisual = ElementCompositionPreview.GetElementVisual(text);
         }
 
-        private ShapeVisual stretchVisual;
+        private ShapeVisual stretchVisualCircle;
+        private ShapeVisual stretchVisualRectangle;
+        CompositionRoundedRectangleGeometry stretchGeometryCircle;
 
         private void setupstretchVisualForCircleButton()
         {
-            CompositionRoundedRectangleGeometry stretchGeometry = m_page_compositor.CreateRoundedRectangleGeometry();
+            stretchGeometryCircle = m_page_compositor.CreateRoundedRectangleGeometry();
 
-            stretchGeometry.Size = new Vector2(40, 40);
-            stretchGeometry.CornerRadius = new Vector2(20, 20);
+            stretchGeometryCircle.Size = new Vector2(40, 40);
+            stretchGeometryCircle.CornerRadius = new Vector2(20, 20);
 
-            CompositionSpriteShape compositionSpriteShape = m_page_compositor.CreateSpriteShape(stretchGeometry);
+            CompositionSpriteShape compositionSpriteShape = m_page_compositor.CreateSpriteShape(stretchGeometryCircle);
             CompositionRadialGradientBrush GradientBrush = m_page_compositor.CreateRadialGradientBrush();
 
-            GradientBrush.ColorStops.Add(m_page_compositor.CreateColorGradientStop(1, Colors.Aqua));
+            GradientBrush.ColorStops.Add(m_page_compositor.CreateColorGradientStop(1, Color.FromArgb(255, 247, 211, 156)));
 
             compositionSpriteShape.FillBrush = GradientBrush;
             compositionSpriteShape.Offset = new Vector2(5, 5);
 
-            stretchVisual = m_page_compositor.CreateShapeVisual();
-            stretchVisual.Size = new Vector2(150, 50);
-            stretchVisual.Shapes.Add(compositionSpriteShape);
-            stretchVisual.Offset = new Vector3(m_sliderMargins.X, 0, 0);
-            stretchVisual.Properties.InsertVector3("newOffset",  Vector3.Zero);
-        }
+            stretchVisualCircle = m_page_compositor.CreateShapeVisual();
+            stretchVisualCircle.Size = new Vector2(150, 50);
+            stretchVisualCircle.Shapes.Add(compositionSpriteShape);
+            stretchVisualCircle.Offset = new Vector3(m_sliderMargins.X, 0, 0);
+            stretchVisualCircle.Properties.InsertVector3("newOffset",  Vector3.Zero);
 
-        private void createWidthObject()
-        {
-            
-        }
+/*            CompositionRectangleGeometry stretchRectangleGeometry = m_page_compositor.CreateRectangleGeometry();
+
+            stretchRectangleGeometry.Size = new Vector2(50, 40);
+
+            CompositionSpriteShape compositionRectangleSpriteShape = m_page_compositor.CreateSpriteShape(stretchRectangleGeometry);
+
+            compositionRectangleSpriteShape.FillBrush = GradientBrush;
+            compositionRectangleSpriteShape.Offset = new Vector2(5, 5);
+            //compositionRectangleSpriteShape.Scale = new Vector2(2, 1);
+
+            stretchVisualRectangle = m_page_compositor.CreateShapeVisual();
+            stretchVisualRectangle.Size = new Vector2(50, 50);
+            stretchVisualRectangle.Shapes.Add(compositionRectangleSpriteShape);
+            stretchVisualRectangle.Offset = new Vector3(m_sliderMargins.X, 0, 0);
+            stretchVisualRectangle.Properties.InsertVector3("newOffset", Vector3.Zero);
+            stretchVisualRectangle.Properties.InsertVector3("newWidth", new Vector3(1, 1, 1));
+*/        }
 
         private void createCanvas()
         {
@@ -270,29 +294,29 @@ namespace slider_class
             visuals = m_page_compositor.CreateContainerVisual();            
             ElementCompositionPreview.SetElementChildVisual(m_page, visuals);
 
+            // INIT
             // ELIPSE
             CreateMainElipse();
             setupColorAnimationForMainElipse();
-            visuals.Children.InsertAtTop(shapeVisualElipse);
-
             // SHADOW
             CreateTopCircleButtonShadow();
-            visuals.Children.InsertAtTop(shapeVisualShadow);
-
             // TEXT
             createText();
-            visuals.Children.InsertAtTop(textVisual);
-
             // CIRCLE
             CreateTopCircleButton();
-            visuals.Children.InsertAtTop(shapeVisualCircle);
-
             // Animation for shadow
             setupMoveAnimationForBottonShadow();
-
-            //
+            //Stretch
             setupstretchVisualForCircleButton();
-            visuals.Children.InsertAtTop(stretchVisual);
+
+            // PLACE ON THE FORM
+            visuals.Children.InsertAtTop(shapeVisualElipse);
+            visuals.Children.InsertAtTop(shapeVisualShadow);
+            visuals.Children.InsertAtTop(textVisual);
+            visuals.Children.InsertAtTop(stretchVisualCircle);
+            //visuals.Children.InsertAtTop(stretchVisualRectangle);
+            visuals.Children.InsertAtTop(shapeVisualCircle);
+            
 
             setupAnimation();
 
@@ -317,8 +341,8 @@ namespace slider_class
 
         private void M_page_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
         {
-            //stretchVisual.Offset = shapeVisualCircle.Offset;
-            //stretchVisual.Properties.InsertVector3("newOffset", pointerPosition);
+            //stretchVisualCircle.Offset = shapeVisualCircle.Offset;
+            //stretchVisualCircle.Properties.InsertVector3("newOffset", pointerPosition);
             
 
         }
@@ -335,20 +359,29 @@ namespace slider_class
             isPressed = false;
             if (pointerPosition.X < theMileOfSwitch)
             {
-                //pointerPosition = Vector3.Zero;
+                //stretchVisualRectangle
                 shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _leftoffsetAnimation);
-                stretchVisual.Properties.InsertVector3("newOffset", Vector3.Zero);
-                stretchVisual.StartAnimation(nameof(stretchVisual.Offset), offsetAnimationstretchVisual2);
-                //stretchVisual.Offset = pointerPosition;
+                stretchVisualCircle.Properties.InsertVector3("newOffset", Vector3.Zero);
+
+/*                stretchVisualRectangle.Properties.InsertVector3("newOffset", Vector3.Zero);
+                stretchVisualRectangle.Properties.InsertVector3("newWidth", new Vector3(1, 1, 1));
+*/
+                stretchVisualCircle.StartAnimation(nameof(Visual.Offset), offsetAnimationstretchVisual2);
+                stretchGeometryCircle.Size = new Vector2(40, 40);
+                //stretchVisualCircle.StartAnimation(nameof(stretchVisualCircle.Offset), offsetAnimationstretchVisual2);
             }
             else
             {
                 //pointerPosition = new Vector3(125, 0, 0);
                 shapeVisualCircle.StartAnimation(nameof(Visual.Offset), _rightoffsetAnimation);
-                stretchVisual.Properties.InsertVector3("newOffset", new Vector3(100, 0, 0));
-                stretchVisual.StartAnimation(nameof(stretchVisual.Offset), offsetAnimationstretchVisual2);
+                stretchVisualCircle.Properties.InsertVector3("newOffset", new Vector3(100, 0, 0));
+                stretchGeometryCircle.Size = new Vector2(40, 40);
 
-                //stretchVisual.Offset = pointerPosition;
+/*                stretchVisualRectangle.Properties.InsertVector3("newOffset", Vector3.Zero);
+                stretchVisualRectangle.Properties.InsertVector3("newWidth", new Vector3(1, 1, 1));
+
+*/                stretchVisualCircle.StartAnimation(nameof(Visual.Offset), offsetAnimationstretchVisual2);
+                //stretchVisualCircle.StartAnimation(nameof(stretchVisualCircle.Offset), offsetAnimationstretchVisual2);
             }
         }
 
@@ -368,11 +401,20 @@ namespace slider_class
                     pointerPosition.X = 0 + m_sliderMargins.X;
                 if (pointerPosition.X >= 100 - m_sliderMargins.Y)
                     pointerPosition.X = 100 - m_sliderMargins.Y;
-                //stretchVisual.Offset = pointerPosition;
+                //stretchVisualCircle.Offset = pointerPosition;
                 shapeVisualCircle.Offset = pointerPosition;
 
-                stretchVisual.Properties.InsertVector3("newOffset", shapeVisualCircle.Offset);
-                stretchVisual.StartAnimation(nameof(Visual.Offset), offsetAnimationstretchVisual2);
+                Vector2 newSize = new Vector2(40 + Math.Abs(shapeVisualCircle.Offset.X - stretchVisualCircle.Offset.X), 40);
+                stretchGeometryCircle.Size = newSize;
+                Vector3 newOffset = new Vector3(shapeVisualCircle.Offset.X - stretchVisualCircle.CenterPoint.X, shapeVisualCircle.Offset.Y, shapeVisualCircle.Offset.Z);
+
+                stretchVisualCircle.Properties.InsertVector3("newOffset", newOffset);
+
+                //stretchVisualRectangle.Properties.InsertVector3("newOffset", shapeVisualCircle.Offset / 2);
+                //stretchVisualRectangle.Properties.InsertVector3("newWidth", newSize);
+
+                stretchVisualCircle.StartAnimation(nameof(Visual.Offset), offsetAnimationstretchVisual2);
+                //stretchVisualCircle.StartAnimation(nameof(Visual.Offset), offsetAnimationstretchVisual2);
 
             }
         }
