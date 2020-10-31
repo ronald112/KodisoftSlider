@@ -45,14 +45,14 @@ namespace slider_class
 
         private CompositionRadialGradientBrush circleGradientBrush;
 
-        private CompositionColorGradientStop ColorStop1;
-        private ColorKeyFrameAnimation color1Animation;
-        private ColorKeyFrameAnimation color2Animation;
+        private CompositionColorGradientStop CircleBottonColorStop;
+        private ColorKeyFrameAnimation CircleBottonColorAnimSecond;
+        private ColorKeyFrameAnimation CircleBottonColorAnimFirst;
 
         private Vector3 pointerPosition;
         private ShapeVisual shapeVisualElipse;
         private ShapeVisual shapeVisualCircle;
-        private ShapeVisual shapeVisualShadow;
+        private ShapeVisual shapeVisualCircleShadow;
         private bool isPressed = false;
 
         public MyCustomSlider(CanvasAnimatedControl page)
@@ -117,9 +117,9 @@ namespace slider_class
             compositionLinearGradientShadowBrush.ColorStops.Insert(1, m_page_compositor.CreateColorGradientStop(1f, Color.FromArgb(255, 230, 160, 53)));
             compositionLinearGradientShadowBrush.Offset = new Vector2(0, 4);
             compositionSpriteShapeShadow.FillBrush = compositionLinearGradientShadowBrush;
-            shapeVisualShadow = m_page_compositor.CreateShapeVisual();
-            shapeVisualShadow.Size = new Vector2(50, 50);
-            shapeVisualShadow.Shapes.Add(compositionSpriteShapeShadow);
+            shapeVisualCircleShadow = m_page_compositor.CreateShapeVisual();
+            shapeVisualCircleShadow.Size = new Vector2(50, 50);
+            shapeVisualCircleShadow.Shapes.Add(compositionSpriteShapeShadow);
         }
 
         private void setupMoveAnimationForBottonShadow()
@@ -128,13 +128,13 @@ namespace slider_class
             exp.Expression = "Visual.Offset";
             exp.SetReferenceParameter("Visual", shapeVisualCircle);
 
-            shapeVisualShadow.StartAnimation(nameof(shapeVisualShadow.Offset), exp);
+            shapeVisualCircleShadow.StartAnimation(nameof(shapeVisualCircleShadow.Offset), exp);
         }
 
         private void CreateTopCircleButton()
         {
             CompositionRoundedRectangleGeometry circleGeometry = m_page_compositor.CreateRoundedRectangleGeometry();
-            
+
             circleGeometry.Size = new Vector2(40, 40);
             circleGeometry.CornerRadius = new Vector2(20, 20);
 
@@ -145,8 +145,8 @@ namespace slider_class
             CompositionSpriteShape compositionSpriteShape = m_page_compositor.CreateSpriteShape(circleGeometry);
             circleGradientBrush = m_page_compositor.CreateRadialGradientBrush();
 
-            ColorStop1 = m_page_compositor.CreateColorGradientStop(1, Colors.White);
-            circleGradientBrush.ColorStops.Add(ColorStop1);            
+            CircleBottonColorStop = m_page_compositor.CreateColorGradientStop(1, Colors.White);
+            circleGradientBrush.ColorStops.Add(CircleBottonColorStop);            
 
             compositionSpriteShape.FillBrush = circleGradientBrush;
             compositionSpriteShape.Offset = new Vector2(5, 5);
@@ -155,22 +155,20 @@ namespace slider_class
             shapeVisualCircle.Size = new Vector2(50, 50);
             shapeVisualCircle.Shapes.Add(compositionSpriteShape);
             shapeVisualCircle.Offset = new Vector3(m_sliderMargins.X, 0, 0);
-
-
         }
 
-        Vector2KeyFrameAnimation sizeAnimation;
+        
         private void setupAnimation()
         {
             // Color animation main circle
-            color1Animation = m_page_compositor.CreateColorKeyFrameAnimation();
-            color1Animation.Duration = TimeSpan.FromSeconds(0.5);
-            color1Animation.InsertKeyFrame(1.0f, Color.FromArgb(255, 247, 211, 156));
-            color1Animation.InsertKeyFrame(0.0f, Colors.White);
-            color2Animation = m_page_compositor.CreateColorKeyFrameAnimation();
-            color2Animation.Duration = TimeSpan.FromSeconds(0.5);
-            color2Animation.InsertKeyFrame(1.0f, Colors.White);
-            color2Animation.InsertKeyFrame(0.0f, Color.FromArgb(255, 247, 211, 156));            
+            CircleBottonColorAnimSecond = m_page_compositor.CreateColorKeyFrameAnimation();
+            CircleBottonColorAnimSecond.Duration = TimeSpan.FromSeconds(0.5);
+            CircleBottonColorAnimSecond.InsertKeyFrame(1.0f, Color.FromArgb(255, 247, 211, 156));
+            CircleBottonColorAnimSecond.InsertKeyFrame(0.0f, Colors.White);
+            CircleBottonColorAnimFirst = m_page_compositor.CreateColorKeyFrameAnimation();
+            CircleBottonColorAnimFirst.Duration = TimeSpan.FromSeconds(0.5);
+            CircleBottonColorAnimFirst.InsertKeyFrame(1.0f, Colors.White);
+            CircleBottonColorAnimFirst.InsertKeyFrame(0.0f, Color.FromArgb(255, 247, 211, 156));            
 
             // Return animation main circle
             _leftoffsetAnimation = m_page_compositor.CreateVector3KeyFrameAnimation();
@@ -183,11 +181,24 @@ namespace slider_class
 
             CubicBezierEasingFunction easing = m_page_compositor.CreateCubicBezierEasingFunction(new Vector2(0.42f, 0.0f), new Vector2(1.0f, 1.0f));
 
-            sizeAnimation = m_page_compositor.CreateVector2KeyFrameAnimation();
-            sizeAnimation.InsertExpressionKeyFrame(0.0f, "this.StartingValue");
-            sizeAnimation.InsertExpressionKeyFrame(1.0f, "prop.newOffset");
-            sizeAnimation.SetReferenceParameter("prop", stretchGeometryCircle.Properties);
-            
+            Vector2KeyFrameAnimation sizeAnimation = m_page_compositor.CreateVector2KeyFrameAnimation();
+            //sizeAnimation.InsertExpressionKeyFrame(0.0f, "this.StartingValue");
+            sizeAnimation.Target = nameof(stretchGeometryCircle.Size);
+            sizeAnimation.InsertExpressionKeyFrame(1.0f, "FinalValue");
+            //sizeAnimation.IterationBehavior = AnimationIterationBehavior.Forever;
+            //sizeAnimation.SetReferenceParameter("prop", stretchGeometryCircle.Properties);
+            //stretchGeometryCircle.StartAnimation(nameof(stretchGeometryCircle.Size), sizeAnimation);
+            Vector2KeyFrameAnimation offsetAnimation = m_page_compositor.CreateVector2KeyFrameAnimation();
+            offsetAnimation.Target = nameof(stretchGeometryCircle.Offset);
+            offsetAnimation.InsertExpressionKeyFrame(0.0f, "StartingValue");
+            offsetAnimation.InsertExpressionKeyFrame(0.8f, "FinalValue / 2");
+            offsetAnimation.InsertExpressionKeyFrame(1.0f, "FinalValue");
+
+
+            var sizeAnimation2 = m_page_compositor.CreateImplicitAnimationCollection();
+            sizeAnimation2[nameof(stretchGeometryCircle.Size)] = sizeAnimation;
+            sizeAnimation2[nameof(stretchGeometryCircle.Offset)] = offsetAnimation;
+
 
         }
 
@@ -208,7 +219,7 @@ namespace slider_class
         }
 
         private ShapeVisual stretchVisualCircle;
-        CompositionRoundedRectangleGeometry stretchGeometryCircle;
+        private CompositionRoundedRectangleGeometry stretchGeometryCircle;
 
         private void setupstretchVisualForCircleButton()
         {
@@ -230,8 +241,6 @@ namespace slider_class
             stretchVisualCircle.Size = new Vector2(150, 50);
             stretchVisualCircle.Shapes.Add(compositionSpriteShape);
             stretchVisualCircle.Offset = new Vector3(m_sliderMargins.X, 0, 0);
-            
-
         }
 
         private void createCanvas()
@@ -262,7 +271,7 @@ namespace slider_class
 
             // PLACE ON THE FORM
             visuals.Children.InsertAtTop(shapeVisualElipse);
-            visuals.Children.InsertAtTop(shapeVisualShadow);
+            visuals.Children.InsertAtTop(shapeVisualCircleShadow);
             visuals.Children.InsertAtTop(textVisual);
             visuals.Children.InsertAtTop(stretchVisualCircle);
             visuals.Children.InsertAtTop(shapeVisualCircle);
@@ -291,7 +300,7 @@ namespace slider_class
 
         private void M_page_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
-            ColorStop1.StartAnimation(nameof(ColorStop1.Color), color2Animation);
+            CircleBottonColorStop.StartAnimation(nameof(CircleBottonColorStop.Color), CircleBottonColorAnimFirst);
             isPressed = false;
             if (pointerPosition.X < theMileOfSwitch)
             {
@@ -322,7 +331,7 @@ namespace slider_class
         private void M_page_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             isPressed = true;
-            ColorStop1.StartAnimation(nameof(ColorStop1.Color), color1Animation);
+            CircleBottonColorStop.StartAnimation(nameof(CircleBottonColorStop.Color), CircleBottonColorAnimSecond);
             M_page_PointerMoved(sender, e);
         }
 
@@ -338,8 +347,10 @@ namespace slider_class
                 shapeVisualCircle.Offset = pointerPosition;
                 //Vector3Node newPos = pointerPosition;
                 //shapeVisualCircle.StartAnimation("Offset", newPos);
-                stretchGeometryCircle.Properties.InsertVector2("newOffset", new Vector2(40 + shapeVisualCircle.Offset.X, 40));
-                stretchGeometryCircle.StartAnimation(nameof(stretchGeometryCircle.Size), sizeAnimation);
+                stretchGeometryCircle.Offset = new Vector2(shapeVisualCircle.Offset.X, 0);
+                stretchGeometryCircle.Size = new Vector2(40 + shapeVisualCircle.Offset.X - stretchGeometryCircle.Offset.X, 40);
+                //stretchGeometryCircle.Properties.InsertVector2("newOffset", new Vector2(40 + shapeVisualCircle.Offset.X, 40));
+
             }
         }
 
