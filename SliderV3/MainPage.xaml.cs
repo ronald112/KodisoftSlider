@@ -12,6 +12,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using CustomSlider;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -25,6 +26,16 @@ namespace SliderV3
         public MainPage()
         {
             this.InitializeComponent();
+            Loaded += PageLoaded;
+        }
+
+        private CustomSlider.Slider slider;
+        private void PageLoaded(object sender, RoutedEventArgs e)
+        {
+            slider = new CustomSlider.Slider(pageSliderBox);
+        }
+        private void Page_Unload(object sender, RoutedEventArgs e)
+        {
         }
     }
 }
